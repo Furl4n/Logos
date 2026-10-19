@@ -1,4 +1,5 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { KeyboardEvent } from 'react'
 import Icon from './Icons'
 
@@ -9,16 +10,24 @@ interface FormSelectProps {
   options: { value: string; label: string }[]
   onChange: (value: string) => void
   active?: boolean
+  id?: string
+  variant?: 'filter' | 'field'
+  placeholder?: string
+  required?: boolean
+  invalid?: boolean
+  describedBy?: string
 }
 
-export default function FormSelect({ label, ariaLabel, value, options, onChange, active = false }: FormSelectProps) {
-  const id = useId()
+export default function FormSelect({ label, ariaLabel, value, options, onChange, active = false, id: providedId, variant = 'filter', placeholder = 'Selecione', required = false, invalid = false, describedBy }: FormSelectProps) {
+  const generatedId = useId()
+  const id = providedId ?? generatedId
   const rootRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const listRef = useRef<HTMLUListElement>(null)
   const searchRef = useRef({ text: '', time: 0 })
   const [open, setOpen] = useState(false)
   const [highlighted, setHighlighted] = useState(0)
+  const [position, setPosition] = useState({ top: 0, left: 0, minWidth: 0, maxHeight: 256 })
   const selectedIndex = options.findIndex(option => option.value === value)
   const selected = options[selectedIndex]
 
@@ -26,10 +35,38 @@ export default function FormSelect({ label, ariaLabel, value, options, onChange,
     if (!open) return
     listRef.current?.focus()
     function closeOutside(event: PointerEvent) {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false)
+      if (!rootRef.current?.contains(event.target as Node) && !listRef.current?.contains(event.target as Node)) setOpen(false)
     }
     document.addEventListener('pointerdown', closeOutside)
     return () => document.removeEventListener('pointerdown', closeOutside)
+  }, [open])
+
+  useLayoutEffect(() => {
+    if (!open) return
+    function placeOptions() {
+      const trigger = triggerRef.current
+      const list = listRef.current
+      if (!trigger || !list) return
+      const rect = trigger.getBoundingClientRect()
+      const below = window.innerHeight - rect.bottom - 12
+      const above = rect.top - 12
+      const openAbove = below < Math.min(list.scrollHeight, 200) && above > below
+      const maxHeight = Math.min(256, Math.max(0, (openAbove ? above : below) - 4))
+      const width = Math.max(rect.width, list.getBoundingClientRect().width)
+      setPosition({
+        top: openAbove ? rect.top - Math.min(list.scrollHeight, maxHeight) - 4 : rect.bottom + 4,
+        left: Math.max(12, Math.min(rect.left, window.innerWidth - width - 12)),
+        minWidth: rect.width,
+        maxHeight,
+      })
+    }
+    placeOptions()
+    window.addEventListener('resize', placeOptions)
+    window.addEventListener('scroll', placeOptions, true)
+    return () => {
+      window.removeEventListener('resize', placeOptions)
+      window.removeEventListener('scroll', placeOptions, true)
+    }
   }, [open])
 
   useEffect(() => {
@@ -82,16 +119,20 @@ export default function FormSelect({ label, ariaLabel, value, options, onChange,
   }
 
   return (
-    <div ref={rootRef} className="relative max-w-full" onBlur={event => {
-      if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false)
+    <div ref={rootRef} className={`relative max-w-full ${variant === 'field' ? 'w-full' : ''}`} onBlur={event => {
+      if (!event.currentTarget.contains(event.relatedTarget) && !listRef.current?.contains(event.relatedTarget)) setOpen(false)
     }}>
       <button
         ref={triggerRef}
+        id={id}
         type="button"
         aria-label={`${ariaLabel}: ${selected?.label ?? ''}`}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={open ? `${id}-options` : undefined}
+        aria-required={required || undefined}
+        aria-invalid={invalid || undefined}
+        aria-describedby={describedBy}
         onClick={() => open ? setOpen(false) : showOptions()}
         onKeyDown={event => {
           if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
@@ -99,16 +140,16 @@ export default function FormSelect({ label, ariaLabel, value, options, onChange,
             showOptions(event.key === 'ArrowUp' ? options.length - 1 : Math.max(selectedIndex, 0))
           }
         }}
-        className={`inline-flex h-10 max-w-full items-center gap-1.5 rounded-md border bg-white px-2 text-sm ${open || active ? 'border-brand/50' : 'border-line hover:border-slate-400'}`}
+        className={`inline-flex h-10 max-w-full items-center gap-1.5 rounded-md border bg-white text-sm ${variant === 'field' ? 'w-full justify-between px-3' : 'px-2'} ${invalid ? 'border-red-500' : open || active ? 'border-brand/50' : 'border-line hover:border-slate-400'}`}
       >
         <span className="inline-flex min-w-0 items-baseline gap-1.5">
-          <span className="shrink-0 text-xs font-medium text-brand-dark">{label}</span>
-          <span className="min-w-0 truncate font-medium text-ink">{selected?.label}</span>
+          {variant === 'filter' && <span className="shrink-0 text-xs font-medium text-brand-dark">{label}</span>}
+          <span className={`min-w-0 truncate ${variant === 'filter' ? 'font-medium' : 'font-normal'} ${selected ? 'text-ink' : 'text-muted'}`}>{selected?.label ?? placeholder}</span>
         </span>
         <span className={`inline-flex text-muted ${open ? '-rotate-90' : 'rotate-90'}`}><Icon name="arrow" size={16} /></span>
       </button>
 
-      {open && (
+      {open && createPortal(
         <ul
           ref={listRef}
           id={`${id}-options`}
@@ -117,7 +158,11 @@ export default function FormSelect({ label, ariaLabel, value, options, onChange,
           aria-activedescendant={`${id}-option-${highlighted}`}
           tabIndex={-1}
           onKeyDown={handleKeyDown}
-          className="absolute top-full left-0 z-30 mt-1 max-h-64 w-max min-w-full max-w-[calc(100vw-3rem)] overflow-y-auto rounded-lg border border-line bg-white p-1.5 shadow-lg shadow-slate-900/10 outline-none"
+          onBlur={event => {
+            if (!rootRef.current?.contains(event.relatedTarget) && !event.currentTarget.contains(event.relatedTarget)) setOpen(false)
+          }}
+          style={position}
+          className="fixed z-40 w-max max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-lg border border-line bg-white p-1.5 shadow-lg shadow-slate-900/10 outline-none"
         >
           {options.map((option, index) => (
             <li
@@ -136,7 +181,7 @@ export default function FormSelect({ label, ariaLabel, value, options, onChange,
               </span>
             </li>
           ))}
-        </ul>
+        </ul>, triggerRef.current?.closest('[role="dialog"]') ?? document.body,
       )}
     </div>
   )

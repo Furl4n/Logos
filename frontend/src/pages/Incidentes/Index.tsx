@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import type { Incident } from '../../interfaces/Incident'
+import type { CreateIncidentInput, Incident } from '../../interfaces/Incident'
 import { useIncidents } from '../../hooks/useIncidents'
-import Button from '../../components/ui/Button'
-import Modal from '../../components/ui/Modal'
+import Icon from '../../components/ui/Icons'
+import IncidentFormModal from '../../components/incident/IncidentFormModal'
 import IncidentDetailsModal from '../../components/incident/IncidentDetailsModal'
 import IncidentToolbar from './IncidentToolbar'
 import IncidentList from './IncidentList'
@@ -11,9 +11,18 @@ import IncidentHeader from './IncidentHeader'
 export default function Incidentes() {
   const state = useIncidents()
   const [selected, setSelected] = useState<Incident | null>(null)
-  const [showNotice, setShowNotice] = useState(false)
+  const [formOpen, setFormOpen] = useState(false)
+  const [successMessage, setSuccessMessage] = useState('')
+  function handleSave(input: CreateIncidentInput) {
+    const incident = state.createIncident(input)
+    state.clearFilters()
+    state.setTimeOrder('newest')
+    setFormOpen(false)
+    setSuccessMessage(`${incident.id} registrado com sucesso.`)
+  }
   return <>
-    <IncidentHeader onAdd={() => setShowNotice(true)} />
+    <IncidentHeader onAdd={() => { setSuccessMessage(''); setFormOpen(true) }} />
+    {successMessage && <div role="status" className="mb-4 flex items-center gap-2 rounded-md border border-green-200 bg-white px-3 py-2 text-sm text-green-800"><Icon name="check" size={17} /><span>{successMessage}</span><button type="button" aria-label="Fechar confirmação" onClick={() => setSuccessMessage('')} className="ml-auto rounded p-1"><Icon name="close" size={16} /></button></div>}
     <section aria-label="Fila de ocorrências">
       <IncidentToolbar
         search={state.search}
@@ -35,6 +44,6 @@ export default function Incidentes() {
       </div>
     </section>
     {selected && <IncidentDetailsModal incident={selected} onClose={() => setSelected(null)} />}
-    {showNotice && <Modal title="Registro de incidente" caption="PRÓXIMA ETAPA" onClose={() => setShowNotice(false)}><p className="mb-7 text-sm leading-relaxed text-muted">O formulário de registro será a próxima tela. Nesta versão inicial, explore a fila, os filtros e as informações das ocorrências.</p><Button onClick={() => setShowNotice(false)}>Voltar para a central</Button></Modal>}
+    {formOpen && <IncidentFormModal onSave={handleSave} onClose={() => setFormOpen(false)} />}
   </>
 }

@@ -1,6 +1,7 @@
 import Icon from '../../components/ui/Icons'
 import FormSelect from '../../components/ui/FormSelect'
 import type { TimeOrder } from '../../interfaces/Incident'
+import { incidentCategories } from '../../interfaces/Incident'
 
 interface Props {
   search: string
@@ -17,7 +18,7 @@ interface Props {
   setStatus: (status: string) => void
 }
 
-const categoryOptions = ['Todas', 'Problema mecânico', 'Acidente com veículo', 'Acidente com feridos', 'Condição climática', 'Bloqueio de via'].map(value => ({ value, label: value }))
+const categoryOptions = ['Todas', ...incidentCategories].map(value => ({ value, label: value }))
 const severityOptions = ['Todas', 'Alta', 'Média', 'Baixa'].map(value => ({ value, label: value }))
 const statusOptions = [
   { value: 'Ativos', label: 'Ativos' },

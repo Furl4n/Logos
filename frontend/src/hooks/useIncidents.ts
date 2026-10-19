@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { incidents } from '../service/mockIncidents'
+import { useIncidentStore } from './useIncidentStore'
 import type { Severity, TimeOrder } from '../interfaces/Incident'
 
 const severityPriority: Record<Severity, number> = { Alta: 0, Média: 1, Baixa: 2 }
 
 export function useIncidents() {
+  const { incidents, createIncident } = useIncidentStore()
   const [search, setSearch] = useState('')
   const [severity, setSeverity] = useState('Todas')
   const [category, setCategory] = useState('Todas')
@@ -29,5 +30,5 @@ export function useIncidents() {
     setCategory('Todas')
     setStatus('Ativos')
   }
-  return { incidents, filtered, search, setSearch, severity, setSeverity, category, setCategory, status, setStatus, timeOrder, setTimeOrder, hasFilters, clearFilters }
+  return { incidents, filtered, search, setSearch, severity, setSeverity, category, setCategory, status, setStatus, timeOrder, setTimeOrder, hasFilters, clearFilters, createIncident }
 }
