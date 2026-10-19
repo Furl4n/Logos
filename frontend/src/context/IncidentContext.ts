@@ -1,7 +1,7 @@
 import { createContext } from 'react'
 import type { CreateIncidentInput, Incident, UpdateIncidentInput } from '../interfaces/Incident'
 
-export type IncidentUpdateResult = { ok: true; incident: Incident } | { ok: false; reason: 'conflict' | 'invalid'; incident: Incident }
+export type IncidentUpdateResult = { ok: true; incident: Incident } | { ok: false; reason: 'conflict' | 'invalid' | 'forbidden'; incident: Incident }
 
 export interface IncidentStore {
   incidents: Incident[]

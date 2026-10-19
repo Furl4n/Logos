@@ -1,5 +1,7 @@
 export type Severity = 'Alta' | 'Média' | 'Baixa'
-export type IncidentStatus = 'Aberto' | 'Em andamento' | 'Resolvido'
+export const incidentStatuses = ['Aberto', 'Em investigação', 'Fechado', 'Inconclusivo'] as const
+export type IncidentStatus = typeof incidentStatuses[number]
+export const isIncidentClosed = (status: IncidentStatus) => status === 'Fechado' || status === 'Inconclusivo'
 export type TimeOrder = 'newest' | 'oldest'
 
 export interface IncidentHistoryEntry {
@@ -7,16 +9,15 @@ export interface IncidentHistoryEntry {
   user: string
   timestamp: string
   changes: string[]
+  observation?: string
 }
 
-export interface UpdateIncidentInput {
-  version: number
-  status: IncidentStatus
-  severity: Severity
-  resolution: string
-  assume?: boolean
-  reopenReason?: string
-}
+export type UpdateIncidentInput = { version: number } & (
+  | { action: 'update'; status: IncidentStatus; severity: Severity; observation: string }
+  | { action: 'assume' }
+  | { action: 'transfer'; analystId: string }
+  | { action: 'reopen'; reason: string }
+)
 
 export interface Incident {
   id: string
@@ -33,8 +34,7 @@ export interface Incident {
   description: string
   route: string
   version?: number
-  analyst?: string
-  resolution?: string
+  analystId?: string
   history?: IncidentHistoryEntry[]
 }
 

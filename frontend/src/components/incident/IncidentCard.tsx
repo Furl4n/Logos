@@ -1,4 +1,5 @@
 import type { Incident } from '../../interfaces/Incident'
+import { isIncidentClosed } from '../../interfaces/Incident'
 import Icon from '../ui/Icons'
 
 const severityStyles = {
@@ -9,12 +10,14 @@ const severityStyles = {
 
 export default function IncidentCard({ incident, onSelect }: { incident: Incident; onSelect: (incident: Incident) => void }) {
   const severity = severityStyles[incident.severity]
-  const urgent = incident.severity === 'Alta' && incident.status !== 'Resolvido'
-  const status = incident.status === 'Em andamento'
+  const urgent = incident.severity === 'Alta' && !isIncidentClosed(incident.status)
+  const status = incident.status === 'Em investigação'
     ? 'border-blue-100 bg-blue-50 text-blue-800'
-    : incident.status === 'Resolvido'
+    : incident.status === 'Fechado'
       ? 'border-green-100 bg-green-50 text-green-800'
-      : 'border-line bg-canvas text-slate-700'
+      : incident.status === 'Inconclusivo'
+        ? 'border-slate-200 bg-slate-100 text-slate-700'
+        : 'border-line bg-canvas text-slate-700'
 
   return (
     <button
@@ -33,7 +36,7 @@ export default function IncidentCard({ incident, onSelect }: { incident: Inciden
             {urgent ? <Icon name="alert" size={13} /> : <span className="size-1 rounded-full bg-current" />}
             {incident.severity}
         </span>
-        <span className={`shrink-0 rounded border px-2 py-0.5 text-xs ${status}`}>{incident.status === 'Em andamento' ? 'Andamento' : incident.status}</span>
+        <span className={`shrink-0 rounded border px-2 py-0.5 text-xs ${status}`}>{incident.status}</span>
         <span className="shrink-0 text-xs tracking-wide text-muted">{incident.id}</span>
         </div>
         <span className={`ml-auto flex shrink-0 items-center gap-1.5 whitespace-nowrap text-sm ${urgent ? 'font-semibold text-red-800' : 'text-muted'}`}>

@@ -48,10 +48,19 @@ Diretórios ainda não criados não representam funcionalidades implementadas; s
 O banco de dados escolhido é **PostgreSQL 14 ou superior**. A migration inicial está em `database/migrations/001_create_core_entities.sql` e cria:
 
 - `users`, com os papéis `DRIVER` e `ANALYST`;
-- `incidents`, incluindo categoria, criticidade, status e versão;
-- `incident_history`, uma linha do tempo geral para mudanças de status e criticidade.
+- `incidents`, incluindo categoria, criticidade, status, versão e `analyst_id`
+  opcional para o responsável atual;
+- `incident_history`, uma linha do tempo geral para status, criticidade, atribuição,
+  observações e reaberturas. Observações são novas linhas com autor e horário;
+  atribuições guardam os responsáveis anterior e novo com chaves estrangeiras.
 
-A migration também define validações, chaves estrangeiras, índices e triggers para `updated_at`.
+A migration também define validações, chaves estrangeiras e triggers para `updated_at`.
+Índices adicionais ficam para uma etapa posterior.
+
+Uma atualização pode gerar vários eventos na mesma versão: por exemplo, encerramento
+gera STATUS e OBSERVATION; reabertura gera REOPEN com justificativa e ASSIGNEE se
+houver troca de responsável. A aplicação insere tudo na mesma transação e preserva
+os eventos anteriores. Os papéis e as permissões são validados na camada de aplicação.
 
 ## Concorrência
 

@@ -43,8 +43,8 @@ página ativa por meio de `Outlet`.
 
 A navegação interna usa `Link` e `NavLink`. No deploy, o servidor deverá servir
 `index.html` para as rotas da aplicação, permitindo abrir `/incidentes` diretamente.
-O `IncidentProvider` mantém os incidentes locais compartilhados entre a central e
-a navegação lateral.
+O `IncidentProvider` mantém os incidentes locais compartilhados entre a fila e
+o painel de detalhes.
 
 ## Executar
 
@@ -61,7 +61,7 @@ Abra o endereço exibido pelo Vite. Para gerar a versão de produção, use `npm
 - Tela principal com identidade laranja e branca e layout responsivo.
 - Fila diretamente após os filtros, agrupada em Alta, Média e Baixa, com contagens.
 - Cards ativos de alta criticidade destacados por faixa, borda, ícone e texto.
-- Exibição inicial de ativos; resolvidos e todos disponíveis pelo filtro de status.
+- Exibição inicial de ativos; Fechado, Inconclusivo e Todos disponíveis pelo filtro de status.
 - Busca por título, código, motorista, placa e localização.
 - Filtros combináveis por criticidade, categoria e status; ação para limpar filtros.
 - Criticidade sempre prioritária: Alta, Média e Baixa. Dentro de cada grupo,
@@ -72,7 +72,7 @@ Abra o endereço exibido pelo Vite. Para gerar a versão de produção, use `npm
   data e hora, título, descrição, caminhão, localização e rota opcional.
 - Validação de campos obrigatórios, data não futura e limites de título (160),
   identificador do caminhão (10) e rota (50 caracteres).
-- Inclusão imediata na fila e atualização da contagem lateral ao registrar.
+- Inclusão imediata na fila ao registrar.
 - Navegação por teclado, fechamento dos painéis com Escape e retorno do foco.
 
 Limpar filtros retorna à visão de incidentes ativos.
@@ -89,28 +89,30 @@ mais recentes, mantendo a criticidade como prioridade. O formulário fica em
 
 ## Atendimento local
 
-O painel de detalhe permite assumir uma ocorrência não atribuída, alterar status e
-criticidade e registrar a resolução, obrigatória para marcar como resolvido.
-Assumir define o responsável como `Analista atual` e muda o status para andamento.
-As alterações ficam no histórico geral, com autor, data e valores alterados.
+O painel de detalhe permite assumir uma ocorrência não atribuída. A sessão de
+exemplo usa Lucas Costa (`service/mockAnalysts.ts`); assumir atribui a ele e muda
+o status para Em investigação. Apenas o responsável edita status e criticidade,
+adiciona observações ou transfere o atendimento ativo para outro analista.
+As observações são entradas imutáveis do histórico geral, com autor e horário;
+o campo fica vazio após salvar para receber uma nova entrada.
 Salvar atualiza a fila e seus filtros imediatamente; o painel permanece aberto.
 
-Ocorrências resolvidas ficam somente para consulta. A ação explícita de reabrir
-exige justificativa e retorna o status para Aberto, preservando o responsável.
-A resolução anterior é preservada no histórico; o campo de resolução é limpo para
-o novo atendimento. A reabertura incrementa a versão e usa a mesma verificação de
-conflito. O bloqueio de edição também é aplicado pelo estado local.
+Aberto e Em investigação são ativos; Fechado e Inconclusivo encerram o atendimento
+e exigem uma nova observação. Encerrados ficam somente para consulta, com ação de
+reabrir disponível para qualquer analista: exige justificativa, retorna para Aberto
+e atribui a ocorrência a quem reabriu. As entradas anteriores permanecem intactas.
+Essas regras também são aplicadas pelo estado local, não somente pelos componentes.
 
 O estado local compara a versão lida com a atual antes de salvar. Em caso de
 divergência, mantém a edição e oferece recarregar os dados, descartando o rascunho.
 Isso prepara a interface para o conflito da API; não implementa concorrência entre
-sessões, autenticação ou exclusividade de atendimento. Tudo é descartado ao
+sessões ou autenticação real. Tudo é descartado ao
 recarregar a página.
 
-O protótipo mantém os três status já usados na tela (Aberto, Andamento e Resolvido).
-Antes da integração, será necessário alinhar esses rótulos aos quatro status
-previstos no contrato e nos requisitos. Responsável e texto da resolução também
-precisam ser incorporados ao contrato e ao banco se esse fluxo for mantido.
+O protótipo usa os quatro status previstos nos requisitos. A migration inicial já
+prevê responsável e entradas de observação no histórico geral. A integração ainda
+deve implementar autenticação, autorização no backend, área do motorista e a
+persistência efetiva desses dados.
 
 ## Cenário de revisão visual
 

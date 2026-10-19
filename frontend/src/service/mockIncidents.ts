@@ -1,11 +1,12 @@
 import type { Incident } from "../interfaces/Incident"
+import { analysts } from './mockAnalysts'
 
 const initialIncidents: Incident[] = [
   { id: 'INC-1048', title: 'Falha no sistema de freios', driver: 'Carlos Henrique', plate: 'GHT-4J82', location: 'BR-116, km 214 · Curitiba, PR', occurredAt: "2026-10-19T14:48:00-03:00", time: 'há 12 min', severity: 'Alta', status: 'Aberto', category: 'Problema mecânico', description: 'Motorista identificou perda de pressão no sistema de freios. Veículo parado no acostamento, aguardando assistência mecânica.', route: 'RT-0284' },
-  { id: 'INC-1047', title: 'Colisão na alça de acesso', driver: 'Marcos Oliveira', plate: 'FQP-8A19', location: 'BR-381, km 492 · Betim, MG', occurredAt: "2026-10-19T14:32:00-03:00", time: 'há 28 min', severity: 'Alta', status: 'Em andamento', category: 'Acidente com veículo', description: 'Colisão com outro veículo na alça de acesso. Área sinalizada e motorista em local seguro.', route: 'RT-0281' },
-  { id: 'INC-1046', title: 'Interdição parcial da rodovia', driver: 'Ana Souza', plate: 'BWR-2C67', location: 'BR-101, km 115 · Itajaí, SC', occurredAt: "2026-10-19T14:15:00-03:00", time: 'há 45 min', severity: 'Média', status: 'Em andamento', category: 'Bloqueio de via', description: 'Obras causaram bloqueio de uma faixa. Motorista aguarda liberação para seguir a entrega.', route: 'RT-0279' },
+  { id: 'INC-1047', title: 'Colisão na alça de acesso', driver: 'Marcos Oliveira', plate: 'FQP-8A19', location: 'BR-381, km 492 · Betim, MG', occurredAt: "2026-10-19T14:32:00-03:00", time: 'há 28 min', severity: 'Alta', status: 'Em investigação', category: 'Acidente com veículo', description: 'Colisão com outro veículo na alça de acesso. Área sinalizada e motorista em local seguro.', route: 'RT-0281' },
+  { id: 'INC-1046', title: 'Interdição parcial da rodovia', driver: 'Ana Souza', plate: 'BWR-2C67', location: 'BR-101, km 115 · Itajaí, SC', occurredAt: "2026-10-19T14:15:00-03:00", time: 'há 45 min', severity: 'Média', status: 'Em investigação', category: 'Bloqueio de via', description: 'Obras causaram bloqueio de uma faixa. Motorista aguarda liberação para seguir a entrega.', route: 'RT-0279' },
   { id: 'INC-1045', title: 'Superaquecimento do motor', driver: 'José Roberto', plate: 'KLM-9D34', location: 'SP-330, km 87 · Campinas, SP', occurredAt: "2026-10-19T14:00:00-03:00", time: 'há 1 h', severity: 'Média', status: 'Aberto', category: 'Problema mecânico', description: 'Temperatura do motor acima do normal. Veículo estacionado em ponto de apoio para avaliação.', route: 'RT-0276' },
-  { id: 'INC-1044', title: 'Chuva intensa no trecho', driver: 'Paulo Santos', plate: 'NXY-5E21', location: 'BR-376, km 662 · Guaratuba, PR', occurredAt: "2026-10-19T13:00:00-03:00", time: 'há 2 h', severity: 'Baixa', status: 'Resolvido', category: 'Condição climática', description: 'Baixa visibilidade por chuva forte. Motorista reduziu a velocidade e informou possível atraso.', route: 'RT-0273' },
+  { id: 'INC-1044', title: 'Chuva intensa no trecho', driver: 'Paulo Santos', plate: 'NXY-5E21', location: 'BR-376, km 662 · Guaratuba, PR', occurredAt: "2026-10-19T13:00:00-03:00", time: 'há 2 h', severity: 'Baixa', status: 'Fechado', category: 'Condição climática', description: 'Baixa visibilidade por chuva forte. Motorista reduziu a velocidade e informou possível atraso.', route: 'RT-0273' },
 ]
 
 // Cenário determinístico de 100 ocorrências para revisar densidade, filtros e prioridade.
@@ -36,9 +37,14 @@ const additionalIncidents = Array.from({ length: 95 }, (_, index): Incident => {
     occurredAt: new Date(referenceTime - minutesAgo * 60_000).toISOString(),
     time: `há ${hours} h${minutes ? ` ${minutes} min` : ''}`,
     severity: index % 5 === 0 ? 'Alta' : index % 5 < 3 ? 'Média' : 'Baixa',
-    status: index % 7 === 0 ? 'Resolvido' : index % 2 === 0 ? 'Aberto' : 'Em andamento',
+    status: index % 7 === 0 ? 'Fechado' : index % 11 === 0 ? 'Inconclusivo' : index % 2 === 0 ? 'Aberto' : 'Em investigação',
     route: `RT-${String(270 - index).padStart(4, '0')}`,
   }
 })
 
-export const incidents: Incident[] = [...initialIncidents, ...additionalIncidents]
+export const incidents: Incident[] = [...initialIncidents, ...additionalIncidents].map((incident, index) => ({
+  ...incident,
+  version: 1,
+  analystId: incident.status === 'Aberto' ? undefined : analysts[index % analysts.length].id,
+  history: [],
+}))

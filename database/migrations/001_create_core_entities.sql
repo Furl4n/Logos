@@ -32,6 +32,7 @@ CREATE TABLE incidents (
     status VARCHAR(30) NOT NULL DEFAULT 'OPEN',
 
     driver_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    analyst_id UUID REFERENCES users(id) ON DELETE RESTRICT,
     truck_plate VARCHAR(10) NOT NULL,
     location TEXT NOT NULL,
     route_code VARCHAR(50),
@@ -57,20 +58,45 @@ CREATE TABLE incident_history (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     incident_id UUID NOT NULL REFERENCES incidents(id) ON DELETE CASCADE,
     change_type VARCHAR(20) NOT NULL,
-    previous_value VARCHAR(30) NOT NULL,
-    new_value VARCHAR(30) NOT NULL,
+    previous_value VARCHAR(30),
+    new_value VARCHAR(30),
+    previous_analyst_id UUID REFERENCES users(id) ON DELETE RESTRICT,
+    new_analyst_id UUID REFERENCES users(id) ON DELETE RESTRICT,
+    observation TEXT,
     changed_by_user_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     incident_version INTEGER NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
     CONSTRAINT incident_history_change_type_check
-        CHECK (change_type IN ('STATUS', 'SEVERITY')),
-    CONSTRAINT incident_history_value_changed_check
-        CHECK (previous_value <> new_value),
+        CHECK (change_type IN ('STATUS', 'SEVERITY', 'ASSIGNEE', 'OBSERVATION', 'REOPEN')),
     CONSTRAINT incident_history_values_match_change_type_check CHECK (
-        (change_type = 'STATUS' AND previous_value IN ('OPEN', 'UNDER_INVESTIGATION', 'CLOSED', 'INCONCLUSIVE') AND new_value IN ('OPEN', 'UNDER_INVESTIGATION', 'CLOSED', 'INCONCLUSIVE'))
+        (
+            change_type IN ('STATUS', 'SEVERITY', 'REOPEN')
+            AND previous_value IS NOT NULL AND new_value IS NOT NULL
+            AND previous_value <> new_value
+            AND previous_analyst_id IS NULL AND new_analyst_id IS NULL
+            AND (
+                (change_type = 'STATUS' AND previous_value IN ('OPEN', 'UNDER_INVESTIGATION') AND new_value IN ('OPEN', 'UNDER_INVESTIGATION', 'CLOSED', 'INCONCLUSIVE') AND observation IS NULL)
+                OR
+                (change_type = 'SEVERITY' AND previous_value IN ('HIGH', 'MEDIUM', 'LOW') AND new_value IN ('HIGH', 'MEDIUM', 'LOW') AND observation IS NULL)
+                OR
+                (change_type = 'REOPEN' AND previous_value IN ('CLOSED', 'INCONCLUSIVE') AND new_value = 'OPEN' AND observation IS NOT NULL AND btrim(observation) <> '')
+            )
+        )
         OR
-        (change_type = 'SEVERITY' AND previous_value IN ('HIGH', 'MEDIUM', 'LOW') AND new_value IN ('HIGH', 'MEDIUM', 'LOW'))
+        (
+            change_type = 'ASSIGNEE'
+            AND previous_value IS NULL AND new_value IS NULL AND observation IS NULL
+            AND new_analyst_id IS NOT NULL
+            AND previous_analyst_id IS DISTINCT FROM new_analyst_id
+        )
+        OR
+        (
+            change_type = 'OBSERVATION'
+            AND previous_value IS NULL AND new_value IS NULL
+            AND previous_analyst_id IS NULL AND new_analyst_id IS NULL
+            AND observation IS NOT NULL AND btrim(observation) <> ''
+        )
     ),
     CONSTRAINT incident_history_version_check CHECK (incident_version >= 2)
 );
@@ -92,5 +118,11 @@ CREATE TRIGGER incidents_set_updated_at
 BEFORE UPDATE ON incidents
 FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
--- changed_by_user_id deve referenciar um ANALYST; essa autorização é garantida
--- pela camada de aplicação, junto da atualização condicional por version.
+-- Eventos distintos da mesma operação compartilham incident_version e são inseridos
+-- na mesma transação. Observações são novas linhas OBSERVATION, sem editar as anteriores.
+-- REOPEN guarda a justificativa em observation; a troca de responsável gera ASSIGNEE.
+-- driver_id deve referenciar um DRIVER; analyst_id e os responsáveis do histórico,
+-- ANALYSTs. A camada de aplicação valida os papéis, a autoria e as permissões:
+-- somente o responsável altera um atendimento ativo; encerrados só podem ser reabertos.
+-- A aplicação também exige uma observação no encerramento e usa atualização
+-- condicional por version para toda mutação, junto da inserção do histórico.

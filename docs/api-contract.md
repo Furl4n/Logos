@@ -18,6 +18,10 @@ Devolve o usuário do token atual para restaurar a sessão e definir a área por
 
 Disponível somente para analistas. Retorna motoristas para seleção ao criar incidente em nome de alguém.
 
+### `GET /users/analysts`
+
+Disponível somente para analistas. Retorna analistas elegíveis para receber uma transferência.
+
 ## Incidentes
 
 ### `GET /incidents`
@@ -39,19 +43,36 @@ Cria um incidente com `title`, `description`, `category`, `severity`, `truckPlat
 
 Retorna dados completos e `history`, em ordem decrescente de data. Motorista só acessa ocorrência própria; analista acessa qualquer ocorrência.
 
-### `PATCH /incidents/{incidentId}/status`
+### `PATCH /incidents/{incidentId}`
 
-Disponível somente para analistas. Recebe o novo `status` e a `version` lida pelo cliente.
+Disponível somente para o analista responsável, com atendimento ativo. Recebe
+`status`, `severity`, uma nova `observation` opcional e a `version` lida pelo cliente.
+Atualiza os campos e adiciona a observação ao histórico na mesma transação, sem
+editar entradas anteriores. Fechado (`CLOSED`) e Inconclusivo (`INCONCLUSIVE`)
+encerram o atendimento e exigem uma nova observação.
 
 ```json
-{ "status": "UNDER_INVESTIGATION", "version": 4 }
+{ "status": "UNDER_INVESTIGATION", "severity": "HIGH", "observation": "Assistência acionada.", "version": 4 }
 ```
 
 A API atualiza apenas se a versão ainda for atual, incrementa a versão e grava o histórico na mesma transação. Retorna `200` no sucesso ou `409 Conflict` com o estado atual se outro analista alterou o incidente antes.
 
-### `PATCH /incidents/{incidentId}/severity`
+### `PATCH /incidents/{incidentId}/assignee`
 
-Disponível somente para analistas. Recebe a nova `severity` e a `version` lida pelo cliente. Reclassifica a prioridade após a triagem, incrementa a versão e grava o evento no histórico geral na mesma transação. Retorna `200` no sucesso ou `409 Conflict` quando a versão estiver desatualizada.
+Recebe `analystId` e `version`. Sem responsável, somente o próprio analista pode
+assumir; a ocorrência passa a `UNDER_INVESTIGATION`. Com responsável, somente ele
+pode transferir a outro analista. Só aceita atendimentos ativos; incrementa a
+versão e registra a atribuição no histórico geral atomicamente.
+
+### `POST /incidents/{incidentId}/reopen`
+
+Recebe `reason` obrigatório e `version`. Qualquer analista pode reabrir Fechado ou
+Inconclusivo; retorna para `OPEN` e atribui a quem reabriu. Preserva todo o histórico
+e grava justificativa, status e responsável na mesma transação, incrementando a versão.
+
+Todas as mutações retornam o incidente atualizado no sucesso, `409` se a versão
+divergir e `403` por falta de permissão. São contratos planejados para integrar as
+ações locais do frontend; as rotas ainda não estão implementadas.
 
 ## Códigos de erro
 

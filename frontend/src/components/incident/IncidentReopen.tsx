@@ -13,11 +13,10 @@ export default function IncidentReopen({ incident, onReopened }: { incident: Inc
   const [version, setVersion] = useState(incident.version ?? 1)
 
   return <div className="space-y-4">
-    <div className="text-sm"><p className="mb-1 font-medium text-ink">Observações do atendimento</p><p className="whitespace-pre-wrap break-words text-ink">{incident.resolution || 'Nenhuma observação registrada.'}</p></div>
     {!editing ? <Button onClick={() => setEditing(true)}>Reabrir ocorrência</Button> : <form noValidate className="space-y-3" onSubmit={event => {
       event.preventDefault()
       if (!reason.trim()) { setError('Informe por que a ocorrência precisa ser reaberta.'); return }
-      const result = updateIncident(incident.id, { version, status: 'Aberto', severity: incident.severity, resolution: '', reopenReason: reason })
+      const result = updateIncident(incident.id, { version, action: 'reopen', reason })
       if (!result.ok) {
         setConflict(result.reason === 'conflict')
         setError(result.reason === 'conflict' ? 'Esta ocorrência foi alterada. Recarregue os dados antes de tentar novamente.' : 'A ocorrência não está mais disponível para reabertura.')

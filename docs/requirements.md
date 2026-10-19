@@ -58,7 +58,10 @@ analista.
 | Consultar incidentes próprios | Sim | Sim |
 | Consultar todos os incidentes | Não | Sim |
 | Filtrar a fila operacional | Não | Sim |
-| Alterar status | Não | Sim |
+| Alterar status, criticidade e adicionar observações | Não | Somente o responsável, em atendimento ativo |
+| Assumir ocorrência sem responsável | Não | Sim |
+| Transferir atendimento ativo | Não | Somente o responsável |
+| Reabrir ocorrência encerrada | Não | Sim, com justificativa e assumindo a responsabilidade |
 
 Fluxo principal:
 
@@ -115,15 +118,28 @@ distintos. O analista pode reclassificar a criticidade após a triagem.
 - `CLOSED` — Fechado
 - `INCONCLUSIVE` — Inconclusivo
 
-Para o MVP, qualquer transição entre status permitidos será aceita. Caso a
-experiência exija restrições de transição, elas deverão ser documentadas antes de serem implementadas.
+Aberto e Em investigação são ativos. Fechado e Inconclusivo encerram o atendimento
+e bloqueiam alterações. Somente o responsável pode alterar status, criticidade
+ou adicionar observações a um atendimento ativo. O encerramento exige uma nova
+observação com o resultado ou a justificativa de inconclusão.
+
+Qualquer analista pode assumir uma ocorrência sem responsável; isso inicia a
+investigação. O responsável pode transferir um atendimento ativo a outro analista.
+Qualquer analista pode reabrir uma ocorrência encerrada com justificativa; ela
+retorna para Aberto e passa a ser atribuída a quem reabriu. Assunção, transferência
+e reabertura usam versão e ficam registradas no histórico geral.
+
+As observações são entradas imutáveis no histórico geral, com autor e horário;
+uma atualização não substitui textos anteriores. Analistas consultam todas as
+ocorrências; motoristas consultam somente as próprias, sem editar o atendimento.
 
 ### 5.4 Priorização padrão da fila
 
 1. Criticidade: Alta, Média, Baixa.
 2. Dentro da mesma criticidade: incidente mais recente primeiro.
 
-Status não remove automaticamente o incidente da lista. Essa decisão preserva a capacidade de consultar a operação completa; um filtro de status só será adicionado se for necessário à interface planejada.
+A visão inicial mostra somente ativos. Fechado e Inconclusivo continuam
+consultáveis pelos filtros de status ou pela opção Todos.
 
 ### 5.5 Concorrência
 

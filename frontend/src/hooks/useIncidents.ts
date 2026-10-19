@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useIncidentStore } from './useIncidentStore'
 import type { Severity, TimeOrder } from '../interfaces/Incident'
+import { isIncidentClosed } from '../interfaces/Incident'
 
 const severityPriority: Record<Severity, number> = { Alta: 0, Média: 1, Baixa: 2 }
 
@@ -14,7 +15,7 @@ export function useIncidents() {
   const filtered = incidents.filter(incident =>
     (severity === 'Todas' || incident.severity === severity) &&
     (category === 'Todas' || incident.category === category) &&
-    (status === 'Todos' || (status === 'Ativos' ? incident.status !== 'Resolvido' : incident.status === status)) &&
+    (status === 'Todos' || (status === 'Ativos' ? !isIncidentClosed(incident.status) : incident.status === status)) &&
     `${incident.title} ${incident.driver} ${incident.plate} ${incident.location} ${incident.id}`
       .toLocaleLowerCase('pt-BR').includes(search.toLocaleLowerCase('pt-BR')),
   ).sort((a, b) => {

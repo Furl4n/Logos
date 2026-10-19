@@ -1,4 +1,5 @@
 import type { Incident, Severity } from '../../interfaces/Incident'
+import { isIncidentClosed } from '../../interfaces/Incident'
 import IncidentCard from '../../components/incident/IncidentCard'
 import Button from '../../components/ui/Button'
 import Icon from '../../components/ui/Icons'
@@ -32,11 +33,11 @@ export default function IncidentList({ incidents, onOpen, onClearFilters }: Inci
       {groups.map(group => {
         const items = incidents.filter(incident => incident.severity === group.severity)
         if (!items.length) return null
-        const hasActive = items.some(incident => incident.status !== 'Resolvido')
+        const hasActive = items.some(incident => !isIncidentClosed(incident.status))
         return <section key={group.severity} aria-label={`Criticidade ${group.severity.toLowerCase()}`}>
           <div className={`mb-2 flex items-center gap-2 rounded-md border px-3 py-2 ${group.severity === 'Alta' && !hasActive ? 'border-line bg-white text-slate-700' : group.style}`}>
             <Icon name={group.severity === 'Alta' && !hasActive ? 'check' : group.icon} size={16} />
-            <h3 className="text-sm font-semibold">{group.severity === 'Alta' && !hasActive ? 'Alta — resolvidos' : group.title}</h3>
+            <h3 className="text-sm font-semibold">{group.severity === 'Alta' && !hasActive ? 'Alta — encerrados' : group.title}</h3>
             <span className="ml-auto text-sm font-semibold tabular-nums">{items.length}</span>
           </div>
           <div className="flex flex-col gap-2">{items.map(incident => <IncidentCard key={incident.id} incident={incident} onSelect={onOpen} />)}</div>

@@ -1,7 +1,7 @@
 import Icon from '../../components/ui/Icons'
 import FormSelect from '../../components/ui/FormSelect'
 import type { TimeOrder } from '../../interfaces/Incident'
-import { incidentCategories } from '../../interfaces/Incident'
+import { incidentCategories, incidentStatuses } from '../../interfaces/Incident'
 
 interface Props {
   search: string
@@ -23,9 +23,7 @@ const severityOptions = ['Todas', 'Alta', 'Média', 'Baixa'].map(value => ({ val
 const statusOptions = [
   { value: 'Ativos', label: 'Ativos' },
   { value: 'Todos', label: 'Todos' },
-  { value: 'Aberto', label: 'Aberto' },
-  { value: 'Em andamento', label: 'Andamento' },
-  { value: 'Resolvido', label: 'Resolvidos' },
+  ...incidentStatuses.map(value => ({ value, label: value })),
 ]
 const timeOptions = [
   { value: 'newest', label: 'Mais recentes' },

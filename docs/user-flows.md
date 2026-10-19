@@ -64,9 +64,15 @@ incidente na lista correspondente.
 ### 5. Detalhe do incidente
 
 - Mostra os dados completos e a linha do tempo de mudanças de status.
-- Para analista, contém o seletor de novo status e ação de salvar.
-- Para analista, permite reclassificar a criticidade com a versão atual do
-  incidente; o novo valor reposiciona o card na fila.
+- Analistas consultam qualquer ocorrência; somente o responsável altera status,
+  criticidade e adiciona observações em atendimentos ativos.
+- Sem responsável, a ação Assumir ocorrência atribui ao analista e inicia a investigação.
+- O responsável pode transferir o atendimento ativo para outro analista.
+- Observações são novas entradas imutáveis no histórico, com autor e horário.
+- Fechado e Inconclusivo encerram o atendimento e exigem uma nova observação.
+- Encerrados permitem somente consulta e a ação Reabrir ocorrência: qualquer
+  analista informa uma justificativa, assume a responsabilidade e retorna a Aberto.
+- As ações usam a versão atual; mudanças de criticidade reposicionam o card na fila.
 - Para motorista, é somente leitura.
 
 ## Conteúdo do card de incidente

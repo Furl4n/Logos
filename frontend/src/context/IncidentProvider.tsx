@@ -5,6 +5,8 @@ import type { IncidentUpdateResult } from './IncidentContext'
 import { incidents as initialIncidents } from '../service/mockIncidents'
 import { drivers } from '../service/mockDrivers'
 import { IncidentContext } from './IncidentContext'
+import { isIncidentClosed } from '../interfaces/Incident'
+import { analysts, currentAnalyst } from '../service/mockAnalysts'
 
 export default function IncidentProvider({ children }: { children: ReactNode }) {
   const [incidents, setIncidents] = useState(initialIncidents)
@@ -23,7 +25,7 @@ export default function IncidentProvider({ children }: { children: ReactNode }) 
       status: 'Aberto',
       time,
       version: 1,
-      history: [{ id: crypto.randomUUID(), user: 'Analista atual', timestamp: new Date().toISOString(), changes: ['Ocorrência registrada.'] }],
+      history: [{ id: crypto.randomUUID(), user: currentAnalyst.name, timestamp: new Date().toISOString(), changes: ['Ocorrência registrada.'] }],
     }
     currentIncidents.current = [incident, ...currentIncidents.current]
     setIncidents(currentIncidents.current)
@@ -34,26 +36,47 @@ export default function IncidentProvider({ children }: { children: ReactNode }) 
     const incident = currentIncidents.current.find(item => item.id === id)
     if (!incident) throw new Error('Ocorrência não encontrada.')
     if ((incident.version ?? 1) !== input.version) return { ok: false, reason: 'conflict', incident }
-    const reopening = input.reopenReason !== undefined
-    if (reopening ? incident.status !== 'Resolvido' || !input.reopenReason?.trim() : incident.status === 'Resolvido') return { ok: false, reason: 'invalid', incident }
-    if (reopening) input = { ...input, status: 'Aberto', severity: incident.severity, resolution: '', assume: false }
-    if ((input.assume && incident.analyst) || (input.status === 'Resolvido' && !input.resolution.trim())) return { ok: false, reason: 'invalid', incident }
     const changes: string[] = []
-    if (reopening) {
-      changes.push(`Ocorrência reaberta. Justificativa: ${input.reopenReason!.trim()}`)
-      if (incident.resolution) changes.push(`Observações do atendimento anterior: ${incident.resolution}`)
+    const closed = isIncidentClosed(incident.status)
+    let status = incident.status
+    let severity = incident.severity
+    let analystId = incident.analystId
+    let observation: string | undefined
+
+    if (input.action === 'reopen') {
+      if (!closed || !input.reason.trim()) return { ok: false, reason: 'invalid', incident }
+      status = 'Aberto'
+      analystId = currentAnalyst.id
+      changes.push(`Ocorrência reaberta. Justificativa: ${input.reason.trim()}`, `Responsável: ${currentAnalyst.name}.`)
+    } else {
+      if (closed) return { ok: false, reason: 'invalid', incident }
+      if (input.action === 'assume') {
+        if (incident.analystId) return { ok: false, reason: 'forbidden', incident }
+        analystId = currentAnalyst.id
+        status = 'Em investigação'
+        changes.push(`Atendimento assumido por ${currentAnalyst.name}.`)
+      } else {
+        if (incident.analystId !== currentAnalyst.id) return { ok: false, reason: 'forbidden', incident }
+        if (input.action === 'transfer') {
+          const target = analysts.find(analyst => analyst.id === input.analystId)
+          if (!target || target.id === incident.analystId) return { ok: false, reason: 'invalid', incident }
+          analystId = target.id
+          changes.push(`Responsável: ${currentAnalyst.name} → ${target.name}.`)
+        } else {
+          if (isIncidentClosed(input.status) && !input.observation.trim()) return { ok: false, reason: 'invalid', incident }
+          status = input.status
+          severity = input.severity
+          observation = input.observation.trim() || undefined
+        }
+      }
     }
-    if (input.assume) changes.push('Atendimento assumido por Analista atual.')
-    if (input.status !== incident.status) changes.push(`Status: ${incident.status} → ${input.status}.`)
-    if (input.severity !== incident.severity) changes.push(`Criticidade: ${incident.severity} → ${input.severity}.`)
-    if (!reopening && input.resolution.trim() !== (incident.resolution ?? '')) changes.push(`Observações do atendimento: ${input.resolution.trim() || 'removidas'}`)
-    if (!changes.length) return { ok: true, incident }
+    if (status !== incident.status) changes.push(`Status: ${incident.status} → ${status}.`)
+    if (severity !== incident.severity) changes.push(`Criticidade: ${incident.severity} → ${severity}.`)
+    if (!changes.length && !observation) return { ok: true, incident }
     const updated: Incident = {
-      ...incident, status: input.status, severity: input.severity,
-      resolution: input.resolution.trim(),
-      analyst: input.assume ? 'Analista atual' : incident.analyst,
+      ...incident, status, severity, analystId,
       version: (incident.version ?? 1) + 1,
-      history: [{ id: crypto.randomUUID(), user: 'Analista atual', timestamp: new Date().toISOString(), changes }, ...(incident.history ?? [])],
+      history: [{ id: crypto.randomUUID(), user: currentAnalyst.name, timestamp: new Date().toISOString(), changes, observation }, ...(incident.history ?? [])],
     }
     currentIncidents.current = currentIncidents.current.map(item => item.id === id ? updated : item)
     setIncidents(currentIncidents.current)
