@@ -1,0 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'IBM Plex Sans', sans-serif;
+  --color-brand: #df5c22;
+  --color-brand-dark: #ba4716;
+  --color-brand-soft: #fff0e8;
+  --color-canvas: #f7f8fa;
+  --color-ink: #252a30;
+  --color-muted: #697786;
+  --color-line: #e4e7eb;
+}
+
+@layer base {
+  body { @apply m-0 min-w-80 bg-white font-sans text-ink antialiased; }
+  button, input, select { font: inherit; }
+  button, select { @apply cursor-pointer; }
+  button { @apply transition-colors motion-reduce:transition-none; }
+  button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+    @apply outline-2 outline-offset-4 outline-brand;
+  }
+  svg { @apply shrink-0; }
+}
