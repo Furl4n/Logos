@@ -1,5 +1,6 @@
 import type { Incident } from "../interfaces/Incident"
 import { analysts } from './mockAnalysts'
+import { drivers as registeredDrivers } from './mockDrivers'
 
 const initialIncidents: Incident[] = [
   { id: 'INC-1048', title: 'Falha no sistema de freios', driver: 'Carlos Henrique', plate: 'GHT-4J82', location: 'BR-116, km 214 · Curitiba, PR', occurredAt: "2026-10-19T14:48:00-03:00", time: 'há 12 min', severity: 'Alta', status: 'Aberto', category: 'Problema mecânico', description: 'Motorista identificou perda de pressão no sistema de freios. Veículo parado no acostamento, aguardando assistência mecânica.', route: 'RT-0284' },
@@ -44,6 +45,7 @@ const additionalIncidents = Array.from({ length: 95 }, (_, index): Incident => {
 
 export const incidents: Incident[] = [...initialIncidents, ...additionalIncidents].map((incident, index) => ({
   ...incident,
+  driverId: registeredDrivers.find(driver => driver.name === incident.driver)?.id,
   version: 1,
   analystId: incident.status === 'Aberto' ? undefined : analysts[index % analysts.length].id,
   history: [],

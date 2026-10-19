@@ -3,17 +3,20 @@ import type { ReactNode } from 'react'
 import type { CreateIncidentInput, Incident, UpdateIncidentInput } from '../interfaces/Incident'
 import type { IncidentUpdateResult } from './IncidentContext'
 import { incidents as initialIncidents } from '../service/mockIncidents'
-import { drivers } from '../service/mockDrivers'
+import { currentDriver, drivers } from '../service/mockDrivers'
+import { useDemoProfile } from '../hooks/useDemoProfile'
 import { IncidentContext } from './IncidentContext'
 import { isIncidentClosed } from '../interfaces/Incident'
 import { analysts, currentAnalyst } from '../service/mockAnalysts'
 
 export default function IncidentProvider({ children }: { children: ReactNode }) {
+  const { profile } = useDemoProfile()
   const [incidents, setIncidents] = useState(initialIncidents)
   const currentIncidents = useRef(initialIncidents)
   const nextCode = useRef(Math.max(...initialIncidents.map(incident => Number(incident.id.slice(4)))) + 1)
 
   function createIncident(input: CreateIncidentInput): Incident {
+    if (profile === 'driver') input = { ...input, driverId: currentDriver.id }
     const driver = drivers.find(driver => driver.id === input.driverId)
     if (!driver) throw new Error('Selecione um motorista cadastrado.')
     const minutesAgo = Math.max(0, Math.floor((Date.now() - Date.parse(input.occurredAt)) / 60_000))
@@ -25,7 +28,7 @@ export default function IncidentProvider({ children }: { children: ReactNode }) 
       status: 'Aberto',
       time,
       version: 1,
-      history: [{ id: crypto.randomUUID(), user: currentAnalyst.name, timestamp: new Date().toISOString(), changes: ['Ocorrência registrada.'] }],
+      history: [{ id: crypto.randomUUID(), user: profile === 'driver' ? driver.name : currentAnalyst.name, timestamp: new Date().toISOString(), changes: ['Ocorrência registrada.'] }],
     }
     currentIncidents.current = [incident, ...currentIncidents.current]
     setIncidents(currentIncidents.current)
@@ -35,6 +38,7 @@ export default function IncidentProvider({ children }: { children: ReactNode }) 
   function updateIncident(id: string, input: UpdateIncidentInput): IncidentUpdateResult {
     const incident = currentIncidents.current.find(item => item.id === id)
     if (!incident) throw new Error('Ocorrência não encontrada.')
+    if (profile === 'driver') return { ok: false, reason: 'forbidden', incident }
     if ((incident.version ?? 1) !== input.version) return { ok: false, reason: 'conflict', incident }
     const changes: string[] = []
     const closed = isIncidentClosed(incident.status)

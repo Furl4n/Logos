@@ -8,3 +8,5 @@ export const drivers = [
   { id: 'driver-7', name: 'Ricardo Almeida' },
   { id: 'driver-8', name: 'Fernanda Lima' },
 ]
+
+export const currentDriver = drivers[0]

@@ -7,9 +7,16 @@ import IncidentDetailsModal from '../../components/incident/IncidentDetailsModal
 import IncidentToolbar from './IncidentToolbar'
 import IncidentList from './IncidentList'
 import IncidentHeader from './IncidentHeader'
+import { currentDriver } from '../../service/mockDrivers'
+import { useDemoProfile } from '../../hooks/useDemoProfile'
 
 export default function Incidentes() {
-  const state = useIncidents()
+  const { profile } = useDemoProfile()
+  return <IncidentPage key={profile} driverView={profile === 'driver'} />
+}
+
+function IncidentPage({ driverView }: { driverView: boolean }) {
+  const state = useIncidents(driverView ? currentDriver.id : undefined)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const selected = state.incidents.find(incident => incident.id === selectedId)
   const [formOpen, setFormOpen] = useState(false)
@@ -22,7 +29,7 @@ export default function Incidentes() {
     setSuccessMessage(`${incident.id} registrado com sucesso.`)
   }
   return <>
-    <IncidentHeader onAdd={() => { setSuccessMessage(''); setFormOpen(true) }} />
+    <IncidentHeader driverView={driverView} onAdd={() => { setSuccessMessage(''); setFormOpen(true) }} />
     {successMessage && <div role="status" className="mb-4 flex items-center gap-2 rounded-md border border-green-200 bg-white px-3 py-2 text-sm text-green-800"><Icon name="check" size={17} /><span>{successMessage}</span><button type="button" aria-label="Fechar confirmação" onClick={() => setSuccessMessage('')} className="ml-auto rounded p-1"><Icon name="close" size={16} /></button></div>}
     <section aria-label="Fila de ocorrências">
       <IncidentToolbar
@@ -44,7 +51,7 @@ export default function Incidentes() {
         <IncidentList incidents={state.filtered} onOpen={(incident: Incident) => setSelectedId(incident.id)} onClearFilters={state.clearFilters} />
       </div>
     </section>
-    {selected && <IncidentDetailsModal incident={selected} onClose={() => setSelectedId(null)} />}
-    {formOpen && <IncidentFormModal onSave={handleSave} onClose={() => setFormOpen(false)} />}
+    {selected && <IncidentDetailsModal incident={selected} readOnly={driverView} onClose={() => setSelectedId(null)} />}
+    {formOpen && <IncidentFormModal driverId={driverView ? currentDriver.id : undefined} onSave={handleSave} onClose={() => setFormOpen(false)} />}
   </>
 }

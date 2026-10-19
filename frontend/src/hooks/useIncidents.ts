@@ -5,8 +5,9 @@ import { isIncidentClosed } from '../interfaces/Incident'
 
 const severityPriority: Record<Severity, number> = { Alta: 0, Média: 1, Baixa: 2 }
 
-export function useIncidents() {
-  const { incidents, createIncident } = useIncidentStore()
+export function useIncidents(driverId?: string) {
+  const { incidents: allIncidents, createIncident } = useIncidentStore()
+  const incidents = driverId ? allIncidents.filter(incident => incident.driverId === driverId) : allIncidents
   const [search, setSearch] = useState('')
   const [severity, setSeverity] = useState('Todas')
   const [category, setCategory] = useState('Todas')

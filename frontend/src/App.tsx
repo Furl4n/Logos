@@ -1,6 +1,7 @@
 import { AppRouter } from './routes/AppRouter'
 import IncidentProvider from './context/IncidentProvider'
+import DemoProfileProvider from './context/DemoProfileProvider'
 
 export default function App() {
-  return <IncidentProvider><AppRouter /></IncidentProvider>
+  return <DemoProfileProvider><IncidentProvider><AppRouter /></IncidentProvider></DemoProfileProvider>
 }

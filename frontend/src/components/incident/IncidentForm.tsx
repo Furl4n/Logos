@@ -21,9 +21,9 @@ function localDateTime() {
   return local.toISOString().slice(0, 16)
 }
 
-export default function IncidentForm({ onSave, onCancel }: { onSave: (input: CreateIncidentInput) => void; onCancel: () => void }) {
+export default function IncidentForm({ onSave, onCancel, driverId }: { onSave: (input: CreateIncidentInput) => void; onCancel: () => void; driverId?: string }) {
   const prefix = useId()
-  const [values, setValues] = useState<FormValues>({ title: '', description: '', driverId: '', plate: '', location: '', route: '', occurredAt: localDateTime(), category: '', severity: '' })
+  const [values, setValues] = useState<FormValues>({ title: '', description: '', driverId: driverId ?? '', plate: '', location: '', route: '', occurredAt: localDateTime(), category: '', severity: '' })
   const [errors, setErrors] = useState<FormErrors>({})
 
   function update(field: keyof FormValues, value: string) {
@@ -54,7 +54,7 @@ export default function IncidentForm({ onSave, onCancel }: { onSave: (input: Cre
       return
     }
     onSave({
-      ...values,
+      ...values, driverId: driverId ?? values.driverId,
       title: values.title.trim(), description: values.description.trim(),
       plate: values.plate.trim().toUpperCase(), location: values.location.trim(),
       route: values.route.trim(), severity: values.severity as Severity,
@@ -99,9 +99,9 @@ export default function IncidentForm({ onSave, onCancel }: { onSave: (input: Cre
               <input {...fieldProps('location')} onChange={event => update('location', event.target.value)} className={inputClass} required placeholder="Ex.: BR-116, km 214 · Curitiba, PR" />
             </FormField>
           </div>
-          <FormField id={`${prefix}-driverId`} label="Motorista" error={errors.driverId}>
+          {driverId ? <div className="text-sm"><span className="text-muted">Motorista</span><p className="mt-1 font-medium">{drivers.find(driver => driver.id === driverId)?.name}</p></div> : <FormField id={`${prefix}-driverId`} label="Motorista" error={errors.driverId}>
             <FormSelect id={`${prefix}-driverId`} variant="field" label="Motorista" ariaLabel="Motorista" value={values.driverId} options={driverOptions} onChange={value => update('driverId', value)} placeholder="Selecione um motorista cadastrado" required invalid={Boolean(errors.driverId)} describedBy={errors.driverId ? `${prefix}-driverId-error` : undefined} />
-          </FormField>
+          </FormField>}
           <div className="grid gap-4 sm:grid-cols-2">
             <FormField id={`${prefix}-plate`} label="Caminhão" error={errors.plate}>
               <input {...fieldProps('plate')} onChange={event => update('plate', event.target.value.toUpperCase())} className={inputClass} maxLength={10} required placeholder="Placa ou identificador" />

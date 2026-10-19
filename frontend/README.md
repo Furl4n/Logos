@@ -38,8 +38,9 @@ apresentação. Os cards e os detalhes ficam nos componentes do domínio.
 `routes/AppRouter.tsx` conecta o roteador à aplicação. `AppLayout` renderiza a
 página ativa por meio de `Outlet`.
 
-- `/incidentes`: central de incidentes.
-- `/` e caminhos desconhecidos: redirecionam para `/incidentes`.
+- `/login`: tela de login e links de demonstração dos dois perfis.
+- `/incidentes`: página única de incidentes, adaptada ao perfil de demonstração.
+- `/` e caminhos desconhecidos: redirecionam para `/login`.
 
 A navegação interna usa `Link` e `NavLink`. No deploy, o servidor deverá servir
 `index.html` para as rotas da aplicação, permitindo abrir `/incidentes` diretamente.
@@ -80,7 +81,7 @@ Limpar filtros retorna à visão de incidentes ativos.
 Os dados são exemplos locais, sem integração com API. Os novos registros ficam em
 memória durante a sessão e são descartados ao recarregar a página. A seleção de
 motorista usa cadastros de exemplo; a integração com usuários reais depende da API.
-Login ainda não está disponível. A fonte IBM Plex Sans é carregada pelo
+A tela de login ainda não autentica; os links de demonstração permitem revisar os dois perfis. A fonte IBM Plex Sans é carregada pelo
 Google Fonts; o sistema usa uma fonte alternativa quando ela não está disponível.
 
 Ao salvar, os filtros retornam à visão de ativos e a ordenação temporal volta para
@@ -111,8 +112,27 @@ recarregar a página.
 
 O protótipo usa os quatro status previstos nos requisitos. A migration inicial já
 prevê responsável e entradas de observação no histórico geral. A integração ainda
-deve implementar autenticação, autorização no backend, área do motorista e a
+deve implementar autenticação, autorização no backend e a
 persistência efetiva desses dados.
+
+## Área do motorista
+
+A página `/incidentes` usa o perfil do `DemoProfileProvider` para adaptar a lista,
+os filtros e os modais. No perfil motorista, limita a consulta por `driverId` do
+motorista de exemplo (`currentDriver`, Carlos Henrique).
+O formulário já vincula esse motorista, sem permitir selecionar outro. Novos
+registros identificam o motorista como autor do histórico e aparecem também na
+central do analista enquanto a sessão local estiver aberta.
+
+Os detalhes mostram responsável e histórico somente para consulta, sem assumir,
+transferir, editar ou reabrir. O estado local também rejeita alterações de atendimento
+nesse perfil e vincula os registros ao motorista atual.
+
+O perfil pode ser escolhido nos links da demonstração do login ou no seletor
+temporário do menu lateral expandido. Alternar o perfil limpa filtros e fecha modais,
+mas mantém os incidentes na memória. Não há página ou item de menu duplicado.
+As rotas ainda são públicas; esse estado de demonstração não substitui a autenticação
+e a autorização que deverão existir no backend.
 
 ## Cenário de revisão visual
 

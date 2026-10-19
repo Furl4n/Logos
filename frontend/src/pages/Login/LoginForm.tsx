@@ -2,10 +2,12 @@ import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import Button from '../../components/ui/Button'
 import FormField from '../../components/ui/FormField'
+import { useDemoProfile } from '../../hooks/useDemoProfile'
 
 const inputClassName = 'w-full rounded-md border border-line bg-white px-3 py-3 text-base text-ink placeholder:text-muted'
 
 export default function LoginForm() {
+  const { setProfile } = useDemoProfile()
   const [showPassword, setShowPassword] = useState(false)
   const [message, setMessage] = useState('')
 
@@ -30,7 +32,11 @@ export default function LoginForm() {
       {message && <p role="status" className="rounded-md border border-line bg-canvas px-3 py-3 text-sm text-ink">{message}</p>}
       <Button type="submit" className="w-full py-3">Entrar</Button>
       <div className="border-t border-line pt-5 text-center">
-        <Link to="/incidentes" className="text-sm font-medium text-brand-dark underline-offset-4 hover:underline">Acessar demonstração</Link>
+        <p className="mb-3 text-sm text-muted">Acessar demonstração</p>
+        <div className="flex justify-center gap-6">
+          <Link to="/incidentes" onClick={() => setProfile('analyst')} className="text-sm font-medium text-brand-dark underline-offset-4 hover:underline">Analista</Link>
+          <Link to="/incidentes" onClick={() => setProfile('driver')} className="text-sm font-medium text-brand-dark underline-offset-4 hover:underline">Motorista</Link>
+        </div>
       </div>
     </form>
   )
