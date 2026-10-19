@@ -6,6 +6,7 @@ import { drivers } from '../../service/mockDrivers'
 import Button from '../ui/Button'
 import FormField from '../ui/FormField'
 import FormSelect from '../ui/FormSelect'
+import DateTimePicker from '../ui/DateTimePicker'
 
 type FormValues = Omit<CreateIncidentInput, 'severity'> & { severity: Severity | '' }
 type FormErrors = Partial<Record<keyof FormValues, string>>
@@ -92,7 +93,7 @@ export default function IncidentForm({ onSave, onCancel }: { onSave: (input: Cre
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <FormField id={`${prefix}-occurredAt`} label="Data e hora da ocorrência" error={errors.occurredAt}>
-              <input {...fieldProps('occurredAt')} onChange={event => update('occurredAt', event.target.value)} className={inputClass} type="datetime-local" max={localDateTime()} required />
+              <DateTimePicker id={`${prefix}-occurredAt`} value={values.occurredAt} onChange={value => update('occurredAt', value)} invalid={Boolean(errors.occurredAt)} describedBy={errors.occurredAt ? `${prefix}-occurredAt-error` : undefined} />
             </FormField>
             <FormField id={`${prefix}-location`} label="Localização" error={errors.location}>
               <input {...fieldProps('location')} onChange={event => update('location', event.target.value)} className={inputClass} required placeholder="Ex.: BR-116, km 214 · Curitiba, PR" />
