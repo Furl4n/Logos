@@ -7,7 +7,18 @@ uma tabela. Esse formato mantém o contexto de cada ocorrência, favorece a
 leitura sob pressão e se adapta naturalmente a telas menores.
 
 Os cards serão ordenados por criticidade (Alta, Média, Baixa) e, dentro de cada
-grupo, pelo incidente mais recente.
+grupo, pelo incidente mais recente por padrão. O analista pode inverter a ordem
+temporal dentro dos grupos. Os grupos têm cabeçalhos e contagens próprios.
+
+A visão inicial mostra somente incidentes ativos. Os resolvidos e a visão de todos
+ficam disponíveis no filtro de status. A fila aparece diretamente após os filtros,
+com as ocorrências de alta criticidade no primeiro grupo. Limpar filtros retorna
+à visão de ativos.
+
+Os cards ativos de alta criticidade usam faixa vermelha forte, fundo suave,
+ícone de alerta e rótulo textual. Título e tempo decorrido têm destaque para
+apoiar a triagem. A localização fica nos detalhes. Incidentes resolvidos não recebem
+o tratamento de urgência.
 
 ## Telas
 
@@ -73,7 +84,7 @@ Cada card deve ter:
 - faixa lateral, ícone e rótulo textual para a criticidade;
 - badge textual para status e categoria;
 - título como informação de maior destaque;
-- motorista, caminhão, localização e horário como contexto secundário;
+- motorista, caminhão, categoria e horário como contexto secundário;
 - foco de teclado visível e área inteira clicável;
 - contraste suficiente sem depender somente da cor.
 

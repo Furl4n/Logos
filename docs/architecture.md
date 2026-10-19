@@ -20,7 +20,15 @@ ps-autoU/
 │   ├── tests/
 │   ├── requirements.txt
 │   └── .env.example
-├── frontend/                # aplicação React; será criada posteriormente
+├── frontend/                # React + TypeScript + Vite + Tailwind CSS
+│   └── src/
+│       ├── components/      # layout, ui e componentes por domínio
+│       ├── hooks/           # estado e lógica das telas
+│       ├── interfaces/      # tipos e contratos
+│       ├── pages/           # telas em Nome/Index.tsx
+│       ├── routes/          # roteador, páginas e layout compartilhado
+│       ├── service/         # dados de exemplo; futuramente acesso à API
+│       └── styles/          # base do Tailwind e tema visual
 ├── database/
 │   └── migrations/          # migrations e scripts exclusivos do banco
 ├── docs/                    # documentação do projeto
