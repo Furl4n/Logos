@@ -82,6 +82,7 @@ Fluxo principal:
 | RF-06 | Consultar detalhes | Ao selecionar um incidente, o analista vê todos os dados disponíveis dele sem perder o contexto da fila. |
 | RF-07 | Criar incidente manualmente | O motorista registra um incidente para si; o analista pode registrá-lo selecionando o motorista associado. Em ambos os casos, a API valida os campos obrigatórios e, após sucesso, o novo incidente fica visível na fila apropriada. |
 | RF-08 | Alterar status | O analista pode mudar o status de um incidente para um dos status permitidos. A interface mostra a confirmação e reflete o estado retornado pela API. |
+| RF-08A | Reclassificar criticidade | O analista pode alterar a criticidade após a triagem. A alteração usa a versão atual do incidente, fica registrada no histórico e atualiza sua posição na fila. |
 | RF-09 | Tratar atualização concorrente | A atualização de status envia a versão lida do incidente. Se ele tiver sido alterado por outro analista, a API rejeita a ação sem sobrescrever dados e a interface informa o conflito, oferecendo recarregar os dados. |
 | RF-10 | Informar carregamento | Durante uma busca ou atualização, a interface mantém feedback visual e evita ações duplicadas incompatíveis. |
 | RF-11 | Informar ausência de dados | Sem incidentes — inicialmente ou após filtros — a interface explica o estado e permite limpar filtros quando aplicável. |
@@ -102,6 +103,10 @@ Fluxo principal:
 - `HIGH` — Alta
 - `MEDIUM` — Média
 - `LOW` — Baixa
+
+Na criação, o usuário seleciona a criticidade inicial independentemente da
+categoria, pois ocorrências do mesmo tipo podem ter impactos operacionais
+distintos. O analista pode reclassificar a criticidade após a triagem.
 
 ### 5.3 Status permitidos
 

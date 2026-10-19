@@ -25,7 +25,9 @@ ps-autoU/
 │   └── migrations/          # migrations e scripts exclusivos do banco
 ├── docs/                    # documentação do projeto
 │   ├── requirements.md
-│   └── architecture.md
+│   ├── architecture.md
+│   ├── api-contract.md
+│   └── user-flows.md
 ├── README.md                # ponto de entrada do repositório
 ├── .gitignore               # será adicionado na configuração inicial
 └── docker-compose.yml       # será adicionado na etapa de containerização
@@ -39,7 +41,7 @@ O banco de dados escolhido é **PostgreSQL 14 ou superior**. A migration inicial
 
 - `users`, com os papéis `DRIVER` e `ANALYST`;
 - `incidents`, incluindo categoria, criticidade, status e versão;
-- `incident_status_history`, para auditoria das mudanças de status.
+- `incident_history`, uma linha do tempo geral para mudanças de status e criticidade.
 
 A migration também define validações, chaves estrangeiras, índices e triggers para `updated_at`.
 

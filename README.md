@@ -8,6 +8,8 @@ O produto conecta motoristas, que registram e acompanham os próprios incidentes
 
 - [Requisitos do MVP](docs/requirements.md)
 - [Arquitetura e organização do repositório](docs/architecture.md)
+- [Fluxos e planejamento da interface](docs/user-flows.md)
+- [Contrato mínimo da API](docs/api-contract.md)
 - [Migration inicial do PostgreSQL](database/migrations/001_create_core_entities.sql)
 
 ## Estado atual
