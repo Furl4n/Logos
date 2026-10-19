@@ -1,7 +1,7 @@
 import Icon from '../ui/Icons'
 import { Link, NavLink } from 'react-router-dom'
 
-export default function SideNav({ count }: { count: number }) {
+export default function SideNav() {
   return (
     <aside className="fixed inset-y-0 left-0 hidden w-19 flex-col border-r border-line bg-white px-3 pt-4 sm:flex xl:w-60 xl:px-5">
       <Link to="/incidentes" aria-label="Logos — início" className="mx-auto mb-5 flex items-center gap-2.5 xl:mx-3">
@@ -15,7 +15,7 @@ export default function SideNav({ count }: { count: number }) {
       <span className="mb-3 hidden px-3 text-xs font-semibold tracking-widest text-muted xl:block">OPERAÇÃO</span>
       <nav aria-label="Navegação principal">
         <NavLink to="/incidentes" aria-label="Incidentes" className={({ isActive }) => `flex items-center justify-center gap-3 rounded-md px-3 py-3 text-sm font-medium xl:justify-start ${isActive ? 'bg-brand-soft text-brand-dark' : 'text-muted hover:bg-canvas'}`}>
-          <Icon name="grid" /><span className="hidden xl:block">Incidentes</span><span className="ml-auto hidden rounded bg-orange-100 px-2 text-xs xl:block">{count}</span>
+          <Icon name="grid" /><span className="hidden xl:block">Incidentes</span>
         </NavLink>
       </nav>
       <div className="mt-auto hidden xl:block">

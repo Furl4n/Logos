@@ -80,12 +80,37 @@ Limpar filtros retorna à visão de incidentes ativos.
 Os dados são exemplos locais, sem integração com API. Os novos registros ficam em
 memória durante a sessão e são descartados ao recarregar a página. A seleção de
 motorista usa cadastros de exemplo; a integração com usuários reais depende da API.
-Login e alteração de incidentes ainda não estão disponíveis. A fonte IBM Plex Sans é carregada pelo
+Login ainda não está disponível. A fonte IBM Plex Sans é carregada pelo
 Google Fonts; o sistema usa uma fonte alternativa quando ela não está disponível.
 
 Ao salvar, os filtros retornam à visão de ativos e a ordenação temporal volta para
 mais recentes, mantendo a criticidade como prioridade. O formulário fica em
 `components/incident/IncidentForm.tsx`, separado do modal e do estado da página.
+
+## Atendimento local
+
+O painel de detalhe permite assumir uma ocorrência não atribuída, alterar status e
+criticidade e registrar a resolução, obrigatória para marcar como resolvido.
+Assumir define o responsável como `Analista atual` e muda o status para andamento.
+As alterações ficam no histórico geral, com autor, data e valores alterados.
+Salvar atualiza a fila e seus filtros imediatamente; o painel permanece aberto.
+
+Ocorrências resolvidas ficam somente para consulta. A ação explícita de reabrir
+exige justificativa e retorna o status para Aberto, preservando o responsável.
+A resolução anterior é preservada no histórico; o campo de resolução é limpo para
+o novo atendimento. A reabertura incrementa a versão e usa a mesma verificação de
+conflito. O bloqueio de edição também é aplicado pelo estado local.
+
+O estado local compara a versão lida com a atual antes de salvar. Em caso de
+divergência, mantém a edição e oferece recarregar os dados, descartando o rascunho.
+Isso prepara a interface para o conflito da API; não implementa concorrência entre
+sessões, autenticação ou exclusividade de atendimento. Tudo é descartado ao
+recarregar a página.
+
+O protótipo mantém os três status já usados na tela (Aberto, Andamento e Resolvido).
+Antes da integração, será necessário alinhar esses rótulos aos quatro status
+previstos no contrato e nos requisitos. Responsável e texto da resolução também
+precisam ser incorporados ao contrato e ao banco se esse fluxo for mantido.
 
 ## Cenário de revisão visual
 

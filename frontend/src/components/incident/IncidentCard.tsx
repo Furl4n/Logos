@@ -4,7 +4,7 @@ import Icon from '../ui/Icons'
 const severityStyles = {
   Alta: { border: 'border-l-[#d46b60]', badge: 'bg-[#fcf0ee] text-[#a6483e]' },
   Média: { border: 'border-l-[#d7af5e]', badge: 'bg-[#faf5e8] text-[#88691f]' },
-  Baixa: { border: 'border-l-[#75a39a]', badge: 'bg-[#edf5f2] text-[#427568]' },
+  Baixa: { border: 'border-l-[#75a39a]', badge: 'bg-[#edf5f2] text-[#285044]' },
 }
 
 export default function IncidentCard({ incident, onSelect }: { incident: Incident; onSelect: (incident: Incident) => void }) {
@@ -14,7 +14,7 @@ export default function IncidentCard({ incident, onSelect }: { incident: Inciden
     ? 'border-blue-100 bg-blue-50 text-blue-800'
     : incident.status === 'Resolvido'
       ? 'border-green-100 bg-green-50 text-green-800'
-      : 'border-line bg-canvas text-muted'
+      : 'border-line bg-canvas text-slate-700'
 
   return (
     <button

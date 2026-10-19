@@ -10,7 +10,8 @@ import IncidentHeader from './IncidentHeader'
 
 export default function Incidentes() {
   const state = useIncidents()
-  const [selected, setSelected] = useState<Incident | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const selected = state.incidents.find(incident => incident.id === selectedId)
   const [formOpen, setFormOpen] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
   function handleSave(input: CreateIncidentInput) {
@@ -40,10 +41,10 @@ export default function Incidentes() {
       />
       <div aria-live="polite" className="sr-only">{state.filtered.length} ocorrências encontradas</div>
       <div className="mt-3">
-        <IncidentList incidents={state.filtered} onOpen={setSelected} onClearFilters={state.clearFilters} />
+        <IncidentList incidents={state.filtered} onOpen={(incident: Incident) => setSelectedId(incident.id)} onClearFilters={state.clearFilters} />
       </div>
     </section>
-    {selected && <IncidentDetailsModal incident={selected} onClose={() => setSelected(null)} />}
+    {selected && <IncidentDetailsModal incident={selected} onClose={() => setSelectedId(null)} />}
     {formOpen && <IncidentFormModal onSave={handleSave} onClose={() => setFormOpen(false)} />}
   </>
 }

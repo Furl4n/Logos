@@ -2,6 +2,22 @@ export type Severity = 'Alta' | 'Média' | 'Baixa'
 export type IncidentStatus = 'Aberto' | 'Em andamento' | 'Resolvido'
 export type TimeOrder = 'newest' | 'oldest'
 
+export interface IncidentHistoryEntry {
+  id: string
+  user: string
+  timestamp: string
+  changes: string[]
+}
+
+export interface UpdateIncidentInput {
+  version: number
+  status: IncidentStatus
+  severity: Severity
+  resolution: string
+  assume?: boolean
+  reopenReason?: string
+}
+
 export interface Incident {
   id: string
   title: string
@@ -16,6 +32,10 @@ export interface Incident {
   category: string
   description: string
   route: string
+  version?: number
+  analyst?: string
+  resolution?: string
+  history?: IncidentHistoryEntry[]
 }
 
 export interface CreateIncidentInput {
