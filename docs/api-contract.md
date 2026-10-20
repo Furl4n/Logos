@@ -4,8 +4,11 @@ Base: `/api/v1`. As rotas deste contrato estão implementadas no backend, inclui
 autenticação, consultas de usuários, incidentes e atendimento. A integração com o
 frontend ainda está pendente.
 JSON com campos camelCase e enums em inglês, traduzidos pelo front. IDs são UUIDs.
-Datas ISO 8601 com fuso, retornadas em UTC (`Z`). Exceto login, todas as rotas
-exigem `Authorization: Bearer <accessToken>`.
+Datas ISO 8601 com fuso, retornadas em UTC (`Z`). As rotas protegidas usam cookie
+`logos_session` HttpOnly, Secure em produção, SameSite=Lax, Path=/api/v1, sem Domain.
+Bearer continua aceito para clientes externos. Operações com cookie, login e logout
+exigem `X-CSRF-Protection: 1`; Origin, quando presente, deve constar em FRONTEND_ORIGINS.
+CORS permite credenciais somente para essas origens explícitas.
 
 ## Modelos de resposta
 
@@ -82,8 +85,8 @@ Uma entrada agrupa os eventos da mesma operação pela versão do incidente:
 ### `POST /auth/login`
 
 Recebe `{ "email": "lucas@example.com", "password": "senha" }`.
-Retorna `200` com `accessToken`, `tokenType: "Bearer"`, `expiresIn: 3600` (segundos)
-e `user` no formato de usuário autenticado. Duração inicial do token: uma hora.
+Retorna `200` com `expiresIn: 3600` (segundos) e `user` no formato de usuário
+autenticado. Define o cookie da sessão por uma hora; não retorna token no JSON.
 E-mail válido, até 255 caracteres, espaços externos removidos e comparação sem
 diferenciar maiúsculas; cadastro/seed deve usar a mesma normalização. Senha
 obrigatória, sem trim ou transformação.
@@ -95,8 +98,14 @@ Não há cadastro público, refresh token ou revogação de token neste contrato
 
 Retorna `200` com usuário autenticado, restaurando a sessão e a visão da página
 única `/incidentes`. Token ausente, inválido ou expirado retorna `401`.
-Ao expirar, o front limpa a sessão e solicita login; sair remove o token local.
+Ao expirar, o front limpa o cache e solicita login.
 Sem revogação, tokens emitidos continuam válidos até expirar.
+
+### `POST /auth/logout`
+
+Retorna `204` e remove o cookie, inclusive quando a sessão expirou.
+Exige o mesmo cabeçalho de proteção CSRF do login. O front limpa seu cache após sucesso.
+Isso não revoga cópias previamente roubadas do JWT.
 
 ## Usuários
 

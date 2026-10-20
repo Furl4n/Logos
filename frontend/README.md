@@ -13,12 +13,12 @@ src/
 │   ├── ui/           # botão, ícones e modal acessível
 │   └── incident/     # card, detalhes e formulário de registro
 ├── context/          # estado compartilhado dos incidentes locais
-├── hooks/            # estado e filtros da fila
-├── interfaces/       # tipos dos incidentes
+├── hooks/            # consultas e mutações da API; estado e filtros da fila local
+├── interfaces/       # tipos da interface e contratos da API
 ├── pages/
 │   └── Incidentes/   # Index.tsx, cabeçalho, filtros e lista
 ├── routes/           # AppRouter.tsx e Routes.tsx
-├── service/          # dados de exemplo; futura integração com a API
+├── service/          # cliente HTTP, sessão, cache e dados de exemplo
 ├── styles/           # base.css: Tailwind, tema e estilos globais
 ├── App.tsx
 └── main.tsx
@@ -56,6 +56,27 @@ npm run dev
 ```
 
 Abra o endereço exibido pelo Vite. Para gerar a versão de produção, use `npm run build`.
+
+## Hooks da API
+
+Configure `VITE_API_URL` conforme `.env.example` (padrão: `http://localhost:8000/api/v1`).
+O cliente HTTP usa `fetch`, e o React Query compartilha o cache pela aplicação,
+seguindo a organização por domínio do ControlaPET.
+
+- `useAuth.ts`: login, usuário autenticado e logout. A API define um cookie `HttpOnly`;
+  login e logout limpam o cache para impedir reaproveitamento entre contas.
+  O frontend envia cookies com `credentials: include` e o cabeçalho `X-CSRF-Protection`.
+  A sessão é consultada em `/auth/me`; o token não é exposto ao JavaScript.
+- `useUsers.ts`: motoristas e analistas; habilite as consultas apenas para analistas.
+- `useIncidentApi.ts`: lista paginada, detalhes, criação, atualização, atribuição e reabertura.
+  As mutações atualizam os detalhes e invalidam as listas. Conflitos HTTP 409
+  atualizam o cache com `currentIncident` e continuam disponíveis como erro para a tela.
+- `ApiError`: expõe `status`, `data.code`, erros de campos e a ocorrência em conflito.
+
+Os tipos de transporte em `interfaces/Api.ts` preservam enums e UUIDs do backend.
+Os tipos de apresentação em `Incident.ts` e os hooks locais continuam atendendo às
+telas de demonstração. A próxima etapa é conectar essas telas aos novos hooks,
+incluindo os estados de carregamento, erro, sessão expirada e paginação.
 
 ## Versão inicial
 

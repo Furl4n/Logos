@@ -25,7 +25,7 @@ class AuthTests(unittest.TestCase):
         cls.password_hash = password_hasher.hash(" senha de teste ")
 
     def setUp(self):
-        self.env = patch.dict(os.environ, {"JWT_SECRET_KEY": "test-only-key-" * 5})
+        self.env = patch.dict(os.environ, {"JWT_SECRET_KEY": "test-only-key-" * 5, "COOKIE_SECURE": "false"})
         self.env.start()
         get_settings.cache_clear()
         self.connection = connect_database()
@@ -40,7 +40,7 @@ class AuthTests(unittest.TestCase):
             yield self.connection
 
         app.dependency_overrides[get_database] = database_override
-        self.client = TestClient(app)
+        self.client = TestClient(app, headers={"X-CSRF-Protection": "1"})
 
     def tearDown(self):
         self.client.close()
@@ -68,13 +68,16 @@ class AuthTests(unittest.TestCase):
                 response = self.login(role)
                 self.assertEqual(response.status_code, 200)
                 body = response.json()
-                self.assertEqual(body["tokenType"], "Bearer")
+                self.assertNotIn("accessToken", body)
+                self.assertNotIn("tokenType", body)
+                cookie = response.headers["set-cookie"]
+                self.assertIn("HttpOnly", cookie)
+                self.assertIn("SameSite=lax", cookie)
+                self.assertIn("Path=/api/v1", cookie)
                 self.assertEqual(body["expiresIn"], 3600)
                 self.assertEqual(set(body["user"]), {"id", "name", "email", "role"})
                 self.assertEqual(body["user"]["role"], role.value)
-                me = self.client.get("/api/v1/auth/me", headers={
-                    "Authorization": f"Bearer {body['accessToken']}"
-                })
+                me = self.client.get("/api/v1/auth/me")
                 self.assertEqual(me.status_code, 200)
                 self.assertEqual(me.json(), body["user"])
 
@@ -137,12 +140,10 @@ class AuthTests(unittest.TestCase):
                 self.assertEqual(result.json()["code"], "UNAUTHENTICATED")
 
     def test_profile_is_read_from_database(self):
-        token = self.login().json()["accessToken"]
+        self.login()
         self.connection.execute("UPDATE users SET role = 'DRIVER' WHERE id = %s",
                                 (self.users[UserRole.ANALYST].id,))
-        result = self.client.get("/api/v1/auth/me", headers={
-            "Authorization": f"Bearer {token}"
-        })
+        result = self.client.get("/api/v1/auth/me")
         self.assertEqual(result.json()["role"], "DRIVER")
 
     def test_analyst_permission(self):
@@ -151,6 +152,31 @@ class AuthTests(unittest.TestCase):
         with self.assertRaises(APIError) as caught:
             require_analyst(self.users[UserRole.DRIVER])
         self.assertEqual(caught.exception.status, 403)
+
+    def test_logout_removes_cookie(self):
+        self.login()
+        result = self.client.post("/api/v1/auth/logout")
+        self.assertEqual(result.status_code, 204)
+        self.assertEqual(self.client.get("/api/v1/auth/me").status_code, 401)
+
+    def test_csrf_and_origin_are_required(self):
+        self.login()
+        for headers in ({"X-CSRF-Protection": ""},
+                        {"Origin": "https://attacker.example"}):
+            result = self.client.post("/api/v1/auth/logout", headers=headers)
+            self.assertEqual(result.status_code, 403)
+            self.assertEqual(result.json()["code"], "CSRF_REJECTED")
+        self.assertEqual(self.client.get("/api/v1/auth/me").status_code, 200)
+
+    def test_secure_cookie_in_production(self):
+        with patch.dict(os.environ, {"COOKIE_SECURE": "true"}):
+            get_settings.cache_clear()
+            response = self.login()
+            self.assertIn("Secure", response.headers["set-cookie"])
+
+    def test_login_requires_csrf_header(self):
+        self.client.headers.pop("X-CSRF-Protection")
+        self.assertEqual(self.login().status_code, 403)
 
 
 if __name__ == "__main__":
