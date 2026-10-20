@@ -78,7 +78,9 @@ Motoristas acessam somente a consulta. As regras também são impostas no backen
 
 `useIncidentAttendance` adapta as ações da interface aos hooks da API.
 Requisições enviam a versão lida; conflitos HTTP 409 atualizam o cache com
-`currentIncident`, preservam o rascunho e exigem recarregar antes de reenviar.
+`currentIncident` e exibem que a alteração não foi salva. A tela bloqueia o envio
+enquanto consulta os dados atuais e depois permite uma nova tentativa manual com
+a versão atualizada, preservando o rascunho. Não há reenvio automático.
 Durante o envio, os campos são bloqueados. Sucessos atualizam a fila e o histórico.
 Transferências consultam analistas reais, excluindo o usuário atual.
 `ApiError` expõe status HTTP, código, erros de campo e ocorrência em conflito.

@@ -14,7 +14,8 @@ const statusOptions = incidentStatuses.map(value => ({ value, label: value }))
 const severityOptions = ['Alta', 'Média', 'Baixa'].map(value => ({ value, label: value }))
 
 export default function IncidentAttendance({ incident }: { incident: Incident }) {
-  const { updateIncident, isPending } = useIncidentAttendance()
+  const { updateIncident, refreshIncident, isPending } = useIncidentAttendance()
+  const [refreshing, setRefreshing] = useState(false)
   const { data: user } = useCurrentUser()
   const [snapshot, setSnapshot] = useState(incident)
   const [status, setStatus] = useState(incident.status)
@@ -45,7 +46,7 @@ export default function IncidentAttendance({ incident }: { incident: Incident })
   }
 
   async function commit(input: UpdateIncidentInput, success: string) {
-    if (isPending) return
+    if (isPending || refreshing || conflict) return
     setMessage('')
     setError('')
     try {
@@ -55,13 +56,25 @@ export default function IncidentAttendance({ incident }: { incident: Incident })
     } catch (error) {
       const isConflict = error instanceof ApiError && error.status === 409
       setConflict(isConflict)
-      setError(isConflict ? 'Esta ocorrência foi alterada. Recarregue os dados antes de tentar novamente.'
+      setError(isConflict ? 'Sua alteração não foi salva porque esta ocorrência foi atualizada por outro atendimento.'
         : error instanceof ApiError ? error.message : 'Não foi possível atualizar o atendimento. Tente novamente.')
+      if (isConflict) {
+        setRefreshing(true)
+        try {
+          const latest = await refreshIncident(incident.id)
+          setSnapshot(latest)
+          setConflict(false)
+        } catch {
+          // Mantém o envio bloqueado se não foi possível obter a versão atual.
+        } finally {
+          setRefreshing(false)
+        }
+      }
     }
   }
 
-  return <section className="border-t border-line pt-4" aria-labelledby="attendance-title" aria-busy={isPending}>
-    <fieldset disabled={isPending} className="min-w-0">
+  return <section className="border-t border-line pt-4" aria-labelledby="attendance-title" aria-busy={isPending || refreshing}>
+    <fieldset disabled={isPending || refreshing} className="min-w-0">
     <h3 id="attendance-title" className="mb-4 text-lg font-bold text-ink">Atendimento</h3>
     <div className="mb-4 flex items-center justify-between gap-3 text-sm">
       <div><span className="text-sm font-medium text-ink">Responsável</span><p className="mt-1 text-sm text-muted">{incident.assigneeName ?? 'Não atribuído'}</p></div>
@@ -96,9 +109,10 @@ export default function IncidentAttendance({ incident }: { incident: Incident })
       </FormField>
       <div className="flex justify-end"><Button type="submit" disabled={!changed || conflict} className="disabled:cursor-not-allowed disabled:opacity-50">Salvar atualização</Button></div>
     </form> : incident.analystId ? <p className="text-sm text-muted">Somente o responsável pode alterar este atendimento.</p> : null}
-    {error && <div role="alert" className="mt-3 rounded-md border border-red-200 px-3 py-2 text-sm text-red-700">{error}{conflict && <button type="button" onClick={() => { reset(incident); setMessage('Dados atualizados. Revise antes de salvar novamente.') }} className="mt-2 block font-semibold underline">Recarregar dados e descartar edição</button>}</div>}
+    {error && <div role="alert" className="mt-3 rounded-md border border-red-200 px-3 py-2 text-sm text-red-700">{error}</div>}
     {message && <p role="status" className="mt-3 text-sm text-green-800">{message}</p>}
     {isPending && <p role="status" className="mt-3 text-sm text-muted">Salvando atendimento…</p>}
+    {refreshing && <p role="status" className="mt-3 text-sm text-muted">Atualizando dados…</p>}
     </fieldset>
   </section>
 }

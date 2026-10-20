@@ -1,9 +1,13 @@
 import { useCurrentUser } from './useAuth'
+import { useQueryClient } from '@tanstack/react-query'
+import type { IncidentDetail } from '../interfaces/Api'
+import { api } from '../service/api'
 import { useAssignIncident, useReopenIncident, useUpdateIncident } from './useIncidentApi'
 import type { UpdateIncidentInput } from '../interfaces/Incident'
 import { enumValue, severityLabels, statusLabels, toIncidentDetail } from '../service/incidentMapper'
 
 export function useIncidentAttendance() {
+  const client = useQueryClient()
   const { data: user } = useCurrentUser()
   const assign = useAssignIncident()
   const update = useUpdateIncident()
@@ -25,5 +29,14 @@ export function useIncidentAttendance() {
     }
   }
 
-  return { updateIncident, isPending: assign.isPending || update.isPending || reopen.isPending }
+  async function refreshIncident(id: string) {
+    const data = await client.fetchQuery({
+      queryKey: ['incidents', 'detail', id],
+      queryFn: ({ signal }) => api<IncidentDetail>(`/incidents/${id}`, { signal }),
+      staleTime: 0,
+    })
+    return toIncidentDetail(data)
+  }
+
+  return { updateIncident, refreshIncident, isPending: assign.isPending || update.isPending || reopen.isPending }
 }
