@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends
 from app.core.dependencies import Database, require_analyst
 from app.models.user import User
 from app.schemas.users import UserReference
-from app.services.users import get_drivers
+from app.services.users import get_analysts, get_drivers
 
 router = APIRouter(prefix="/users", tags=["Usuários"])
 
@@ -15,3 +15,10 @@ def drivers(
     user: Annotated[User, Depends(require_analyst)], connection: Database,
 ) -> list[UserReference]:
     return get_drivers(connection)
+
+
+@router.get("/analysts", response_model=list[UserReference])
+def analysts(
+    user: Annotated[User, Depends(require_analyst)], connection: Database,
+) -> list[UserReference]:
+    return get_analysts(connection)

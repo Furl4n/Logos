@@ -129,3 +129,35 @@ class IncidentDetail(IncidentSummary):
     createdAt: datetime
     updatedAt: datetime
     history: list[IncidentHistoryEntry]
+
+
+class VersionedRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    version: int = Field(ge=1, strict=True)
+
+
+class UpdateIncidentRequest(VersionedRequest):
+    status: IncidentStatus
+    severity: IncidentSeverity
+    observation: str | None = None
+
+    @field_validator("observation", mode="before")
+    @classmethod
+    def normalize_observation(cls, value: object) -> object:
+        if isinstance(value, str):
+            return value.strip() or None
+        return value
+
+
+class AssignIncidentRequest(VersionedRequest):
+    analystId: UUID
+
+
+class ReopenIncidentRequest(VersionedRequest):
+    reason: str = Field(min_length=1)
+
+    @field_validator("reason", mode="before")
+    @classmethod
+    def trim_reason(cls, value: object) -> object:
+        return value.strip() if isinstance(value, str) else value

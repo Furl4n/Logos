@@ -17,9 +17,10 @@ O produto conecta motoristas, que registram e acompanham os próprios incidentes
 O frontend possui as telas e os fluxos locais com dados de exemplo. O backend
 tem a estrutura em Python/FastAPI, conexão com PostgreSQL, comando de migrations
 e autenticação com JWT. Incidentes possuem listagem com filtros e paginação,
-criação e detalhes com histórico, respeitando o acesso por perfil. O banco local
-roda com Docker Compose. Atendimento de incidentes, integração com o frontend e
-deploy são as próximas etapas.
+criação e detalhes com histórico, respeitando o acesso por perfil. O atendimento
+inclui atribuição, transferência, status, criticidade, observações e reabertura,
+com controle de concorrência por versão. O banco local roda com Docker Compose.
+Integração com o frontend e deploy são as próximas etapas.
 
 Veja como executar cada aplicação em [frontend](frontend/README.md) e
 [backend](backend/README.md).

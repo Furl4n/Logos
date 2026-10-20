@@ -177,7 +177,34 @@ antes de enviar a resposta de sucesso; falha reverte a operação.
 
 O histórico retorna versões decrescentes, com alterações agrupadas e observação
 separada. A consulta de detalhes lê incidente e eventos no mesmo snapshot.
-As operações de atendimento ainda serão implementadas.
+
+## Atendimento e concorrência
+
+- `GET /api/v1/users/analysts`: consulta de analistas para transferência, com
+  somente `{ id, name }`, restrita a analistas.
+- `PATCH /api/v1/incidents/{incidentId}`: recebe `status`, `severity`, `version`
+  e `observation` opcional. Somente o responsável altera um atendimento ativo.
+- `PATCH /api/v1/incidents/{incidentId}/assignee`: recebe `analystId` e `version`.
+  Sem responsável, o analista assume para si e o status passa a UNDER_INVESTIGATION.
+  Com responsável, somente ele transfere para outro analista, mantendo o status.
+- `POST /api/v1/incidents/{incidentId}/reopen`: recebe `reason` e `version`.
+  Qualquer analista pode reabrir CLOSED ou INCONCLUSIVE, com justificativa. O
+  status volta a OPEN e esse analista passa a ser o responsável.
+
+CLOSED e INCONCLUSIVE encerram o atendimento e exigem uma nova observação.
+Atualização comum e transferência são bloqueadas nesses estados. Observações
+são acrescentadas ao histórico; nunca substituem as anteriores.
+
+Toda mutação exige a versão inteira lida no incidente. A atualização é condicional
+no PostgreSQL; somente uma operação com a mesma versão pode vencer. A operação
+incrementa uma vez, mesmo quando produz vários eventos. Estado e histórico usam
+a mesma transação; qualquer falha reverte ambos. Ao reenviar status e criticidade
+atuais sem observação, a API retorna o estado sem alterar versão ou timestamps.
+
+Versão desatualizada retorna `409`, `code: "VERSION_CONFLICT"` e `currentIncident`
+com os detalhes atualizados. Esse retorno só é fornecido após verificar acesso
+ao recurso. O frontend deverá preservar o rascunho e oferecer recarregar a
+ocorrência antes de tentar novamente. Não há repetição automática da operação.
 
 ## Validação do backend
 
@@ -189,8 +216,10 @@ python -m unittest discover -s tests -v
 ```
 
 Os testes integram as rotas HTTP ao PostgreSQL, usam uma chave de teste e criam
-usuários e incidentes temporários. Cada teste reverte sua transação, sem deixar esses
-registros no banco. Sequências podem ter lacunas, inclusive após rollback.
+usuários e incidentes temporários. Os testes comuns revertem sua transação.
+Os testes concorrentes usam conexões independentes, confirmam seus próprios dados
+temporários e depois removem apenas os UUIDs que criaram. Sequências podem ter
+lacunas, inclusive após rollback.
 Cobrem os dois perfis, normalização de e-mail, preservação da senha, erros de
 validação, credenciais inválidas, tokens inválidos/expirados e autorização por perfil.
 Também cobrem filtros, busca, paginação acima de 100 registros, desempate por UUID,
@@ -199,6 +228,12 @@ Criação e detalhes são validados para os dois perfis, incluindo autoria, camp
 inválidos, agrupamento do histórico, seleção de motorista e rollback quando o
 registro do histórico falha. Há também uma verificação de falha na finalização da
 transação para garantir que a API não envie sucesso antecipadamente.
+Atendimento é validado para os quatro status, permissões, fechamento com
+observação, reabertura, transferência, no-op e rollback de histórico parcial.
+Três cenários usam requisições HTTP simultâneas e conexões independentes:
+dois analistas assumindo, duas abas adicionando observações e transferência
+concorrente com uma atualização. Em cada um, uma operação vence e outra recebe
+`409` com o mesmo estado da resposta vencedora.
 
 ## Organização
 
@@ -210,4 +245,4 @@ transação para garantir que a API não envie sucesso antecipadamente.
 - `app/repositories`: acesso ao banco de dados.
 - `app/main.py`: criação e configuração da aplicação.
 
-Atendimento de incidentes e integração com o frontend são as próximas etapas.
+Integração com o frontend e deploy são as próximas etapas.

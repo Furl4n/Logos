@@ -1,6 +1,7 @@
 import logging
 
 from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
@@ -8,10 +9,11 @@ logger = logging.getLogger(__name__)
 
 
 class APIError(Exception):
-    def __init__(self, status: int, code: str, detail: str):
+    def __init__(self, status: int, code: str, detail: str, extra: dict | None = None):
         self.status = status
         self.code = code
         self.detail = detail
+        self.extra = extra or {}
 
 
 def register_error_handlers(app: FastAPI) -> None:
@@ -19,7 +21,7 @@ def register_error_handlers(app: FastAPI) -> None:
     async def api_error_handler(request: Request, error: APIError) -> JSONResponse:
         return JSONResponse(
             status_code=error.status,
-            content={"detail": error.detail, "code": error.code},
+            content=jsonable_encoder({"detail": error.detail, "code": error.code, **error.extra}),
             headers={"WWW-Authenticate": "Bearer"} if error.status == 401 else None,
         )
 

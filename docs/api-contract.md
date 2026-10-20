@@ -1,8 +1,8 @@
 # Contrato mínimo da API
 
-Base: `/api/v1`. Login, consulta do usuário autenticado, consulta de motoristas,
-listagem, criação e detalhes de incidentes já estão implementados. As rotas de
-atendimento e consulta de analistas permanecem planejadas.
+Base: `/api/v1`. As rotas deste contrato estão implementadas no backend, incluindo
+autenticação, consultas de usuários, incidentes e atendimento. A integração com o
+frontend ainda está pendente.
 JSON com campos camelCase e enums em inglês, traduzidos pelo front. IDs são UUIDs.
 Datas ISO 8601 com fuso, retornadas em UTC (`Z`). Exceto login, todas as rotas
 exigem `Authorization: Bearer <accessToken>`.

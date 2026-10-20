@@ -70,9 +70,13 @@ os eventos anteriores. Os papéis e as permissões são validados na camada de a
 
 ## Concorrência
 
-Todas as alterações de atendimento usarão controle otimista por versão, incluindo observações, criticidade, atribuição e reabertura. A API receberá a versão lida e fará uma atualização atômica condicionada a ela. Se houver divergência, responderá `409 Conflict`, sem sobrescrever a mudança existente.
+Todas as alterações de atendimento usam controle otimista por versão, incluindo
+observações, criticidade, atribuição e reabertura. A API recebe a versão lida e faz
+`UPDATE ... WHERE id = ... AND version = ...`, incrementando a versão uma única
+vez por operação. Se houver divergência, responde `409 Conflict` com o incidente
+atual, sem sobrescrever a mudança existente.
 
-Os eventos de histórico serão inseridos na mesma transação da alteração, agrupados
+Os eventos de histórico são inseridos na mesma transação da alteração, agrupados
 por versão na resposta da API. O suporte ao código público e ao evento de criação
 com autor está na migration `002`.
 
@@ -98,7 +102,8 @@ A pasta `database/` não conterá o Compose: ela guarda apenas migrations, seeds
    por criticidade, horário e UUID, com total e página na mesma instrução SQL.
    Criação grava incidente e CREATED atomicamente. Detalhes incluem histórico
    agrupado por versão, com o mesmo escopo por perfil. A transação da requisição
-   é confirmada antes de enviar a resposta HTTP. Faltam as rotas de atendimento
-   e atualização concorrente.
+   é confirmada antes de enviar a resposta HTTP. Atendimento implementado com
+   assunção, transferência, atualização, observações e reabertura, usando versão
+   e histórico atômico. Consultas auxiliares de motoristas e analistas disponíveis.
 5. Integrar o frontend React existente ao contrato da API, removendo os mocks e o seletor temporário de perfil.
 6. Expandir testes e containerização das aplicações; configurar deploy.

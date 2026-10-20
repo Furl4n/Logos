@@ -2,6 +2,7 @@ from uuid import UUID
 
 from psycopg import Connection, sql
 
+from app.models.incident import IncidentEvent, IncidentSeverity, IncidentStatus
 from app.models.user import User, UserRole
 from app.schemas.incidents import CreateIncidentRequest, IncidentFilters
 
@@ -49,6 +50,35 @@ def find_incident(connection: Connection, incident_id: UUID, user: User) -> dict
         WHERE i.id = %s AND (%s OR i.driver_id = %s)""",
         (incident_id, user.role == UserRole.ANALYST, user.id),
     ).fetchone()
+
+
+def apply_attendance_update(
+    connection: Connection, incident_id: UUID, expected_version: int,
+    status: IncidentStatus, severity: IncidentSeverity, analyst_id: UUID,
+) -> int | None:
+    row = connection.execute(
+        """UPDATE incidents
+           SET status = %s, severity = %s, analyst_id = %s, version = version + 1
+           WHERE id = %s AND version = %s RETURNING version""",
+        (status.value, severity.value, analyst_id, incident_id, expected_version),
+    ).fetchone()
+    return row["version"] if row else None
+
+
+def insert_attendance_events(
+    connection: Connection, incident_id: UUID, version: int,
+    author_id: UUID, events: list[IncidentEvent],
+) -> None:
+    with connection.cursor() as cursor:
+        cursor.executemany(
+            """INSERT INTO incident_history (
+                incident_id, incident_version, changed_by_user_id, change_type,
+                previous_value, new_value, previous_analyst_id, new_analyst_id, observation
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+            [(incident_id, version, author_id, event.change_type,
+              event.previous_value, event.new_value, event.previous_analyst_id,
+              event.new_analyst_id, event.observation) for event in events],
+        )
 
 
 def list_incidents(
