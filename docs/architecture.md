@@ -80,6 +80,14 @@ Os eventos de histórico são inseridos na mesma transação da alteração, agr
 por versão na resposta da API. O suporte ao código público e ao evento de criação
 com autor está na migration `002`.
 
+## Tema da interface
+
+O frontend compartilha a preferência claro/escuro/sistema por contexto React.
+As cores usam tokens semânticos CSS, alterados por `data-theme` no elemento raiz,
+incluindo os conteúdos renderizados em portais. A preferência visual fica no
+`localStorage`, independente da sessão de autenticação, e a opção sistema usa
+`prefers-color-scheme`. O HTML define o tema inicial antes da montagem do React.
+
 ## Docker
 
 O arquivo `docker-compose.yml` fica na raiz e atualmente executa o PostgreSQL 17

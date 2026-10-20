@@ -141,7 +141,7 @@ export default function FormSelect({ label, ariaLabel, value, options, onChange,
             showOptions(event.key === 'ArrowUp' ? options.length - 1 : Math.max(selectedIndex, 0))
           }
         }}
-        className={`inline-flex ${wrapLabel ? 'min-h-10 py-2' : 'h-10'} max-w-full items-center gap-1.5 rounded-md border bg-white text-sm ${variant === 'field' ? 'w-full justify-between px-3' : 'w-full justify-between px-2 sm:w-auto'} ${invalid ? 'border-red-500' : open || active ? 'border-brand/50' : 'border-line hover:border-slate-400'}`}
+        className={`inline-flex ${wrapLabel ? 'min-h-10 py-2' : 'h-10'} max-w-full items-center gap-1.5 rounded-md border bg-surface text-sm ${variant === 'field' ? 'w-full justify-between px-3' : 'w-full justify-between px-2 sm:w-auto'} ${invalid ? 'border-danger' : open || active ? 'border-brand/50' : 'border-line hover:border-strong'}`}
       >
         <span className="inline-flex min-w-0 items-baseline gap-1.5">
           {variant === 'filter' && <span className="shrink-0 text-xs font-medium text-brand-dark">{label}</span>}
@@ -163,7 +163,7 @@ export default function FormSelect({ label, ariaLabel, value, options, onChange,
             if (!rootRef.current?.contains(event.relatedTarget) && !event.currentTarget.contains(event.relatedTarget)) setOpen(false)
           }}
           style={{ ...position, ...(wrapLabel ? { width: position.minWidth } : {}) }}
-          className="fixed z-40 w-max max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-lg border border-line bg-white p-1.5 shadow-lg shadow-slate-900/10 outline-none"
+          className="fixed z-40 w-max max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-lg border border-line bg-surface p-1.5 shadow-lg shadow-slate-900/10 outline-none"
         >
           {options.map((option, index) => (
             <li

@@ -5,7 +5,7 @@ import FormField from '../../components/ui/FormField'
 import { useLogin } from '../../hooks/useAuth'
 import { ApiError } from '../../service/api'
 
-const inputClassName = 'w-full rounded-md border border-line bg-white px-3 py-3 text-base text-ink placeholder:text-muted'
+const inputClassName = 'w-full rounded-md border border-line bg-surface px-3 py-3 text-base text-ink placeholder:text-muted'
 
 export default function LoginForm() {
   const login = useLogin()
@@ -40,7 +40,7 @@ export default function LoginForm() {
           </button>
         </div>
       </FormField>
-      {message && <p role="alert" className="rounded-md border border-red-200 bg-red-50 px-3 py-3 text-sm text-red-800">{message}</p>}
+      {message && <p role="alert" className="rounded-md border border-danger-line bg-danger-soft px-3 py-3 text-sm text-danger">{message}</p>}
       <Button type="submit" disabled={login.isPending} className="w-full py-3 disabled:cursor-wait">{login.isPending ? 'Entrando…' : 'Entrar'}</Button>
       </fieldset>
     </form>

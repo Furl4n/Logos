@@ -45,7 +45,7 @@ export default function IncidentToolbar({ search, setSearch, severity, category,
         <input aria-label="Buscar incidentes" placeholder="Buscar por ocorrência, motorista ou placa..." value={search} onChange={event => setSearch(event.target.value)} className="w-full min-w-0 bg-transparent text-base text-ink outline-none placeholder:text-muted focus-visible:outline-none sm:text-sm" />
       </label>
       <div className={`order-2 col-span-2 grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 @5xl:order-1 @5xl:flex [&_button]:w-full @5xl:[&_button]:w-auto ${driverView ? '' : '@xl:grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)]'}`}>
-        <button ref={filterButton} type="button" onClick={() => setOpen(value => !value)} aria-haspopup="dialog" aria-expanded={open} aria-controls={open ? 'incident-filters' : undefined} className={`inline-flex h-10 items-center justify-center gap-2 rounded-md border px-3 text-sm font-medium ${count ? 'border-brand/50 bg-brand-soft text-brand-dark' : 'border-line bg-white text-ink hover:border-slate-400'}`}>
+        <button ref={filterButton} type="button" onClick={() => setOpen(value => !value)} aria-haspopup="dialog" aria-expanded={open} aria-controls={open ? 'incident-filters' : undefined} className={`inline-flex h-10 items-center justify-center gap-2 rounded-md border px-3 text-sm font-medium ${count ? 'border-brand/50 bg-brand-soft text-brand-dark' : 'border-line bg-surface text-ink hover:border-strong'}`}>
           <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><path d="M4 6h16M7 12h10M10 18h4" /></svg>
           Filtros{count > 0 && <span className="grid size-5 place-items-center rounded-full bg-brand text-xs text-white">{count}</span>}
         </button>
@@ -94,7 +94,7 @@ function FilterPanel({ anchor, initial, onClose, onApply }: { anchor: RefObject<
     { key: 'category', label: 'Categoria', options: categoryOptions },
     { key: 'status', label: 'Status', options: statusOptions },
   ]
-  return createPortal(<div ref={panel} id="incident-filters" role="dialog" aria-labelledby="incident-filters-title" style={position} className="fixed z-30 w-90 max-w-[calc(100vw-1.5rem)] rounded-lg border border-line bg-white shadow-lg shadow-slate-900/10">
+  return createPortal(<div ref={panel} id="incident-filters" role="dialog" aria-labelledby="incident-filters-title" style={position} className="fixed z-30 w-90 max-w-[calc(100vw-1.5rem)] rounded-lg border border-line bg-surface shadow-lg shadow-slate-900/10">
     <div style={{ maxHeight: Math.max(0, position.maxHeight - 2) }} className="overflow-y-auto overscroll-contain rounded-lg p-4">
     <div className="mb-4 flex items-center justify-between gap-3">
       <h2 id="incident-filters-title" className="text-lg font-medium">Filtros</h2>

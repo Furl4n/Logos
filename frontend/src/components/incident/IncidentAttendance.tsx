@@ -87,7 +87,7 @@ export default function IncidentAttendance({ incident }: { incident: Incident })
     }}>
       <FormField id="transfer-analyst" label="Novo responsável" showRequiredIndicator={false}>
         {analystQuery.isPending && <p role="status" className="mb-2 text-sm text-muted">Carregando analistas…</p>}
-        {analystQuery.isError && <p role="alert" className="mb-2 text-sm text-red-700">Não foi possível carregar os analistas. <button type="button" onClick={() => void analystQuery.refetch()} className="underline">Tentar novamente</button></p>}
+        {analystQuery.isError && <p role="alert" className="mb-2 text-sm text-danger">Não foi possível carregar os analistas. <button type="button" onClick={() => void analystQuery.refetch()} className="underline">Tentar novamente</button></p>}
         <FormSelect id="transfer-analyst" variant="field" label="Novo responsável" ariaLabel="Novo responsável" value={targetId} options={analystOptions} onChange={setTargetId} placeholder="Selecione um analista" required />
       </FormField>
       <div className="flex justify-end"><Button type="submit" disabled={!targetId || conflict || !analystQuery.isSuccess} className="disabled:cursor-not-allowed disabled:opacity-50">Confirmar transferência</Button></div>
@@ -105,12 +105,12 @@ export default function IncidentAttendance({ incident }: { incident: Incident })
         <FormField id="attendance-severity" label="Criticidade" showRequiredIndicator={false}><FormSelect id="attendance-severity" variant="field" label="Criticidade" ariaLabel="Criticidade" value={severity} options={severityOptions} onChange={value => { setSeverity(value as Severity); setMessage('') }} /></FormField>
       </div>
       <FormField id="attendance-observation" label="Observações do atendimento" optional={!isIncidentClosed(status)} showRequiredIndicator={false} error={observationError}>
-        <textarea id="attendance-observation" value={observation} onChange={event => { setObservation(event.target.value); setObservationError(''); setMessage('') }} required={isIncidentClosed(status)} aria-invalid={Boolean(observationError)} aria-describedby={observationError ? 'attendance-observation-error' : undefined} rows={3} placeholder="Adicione uma atualização ao histórico do atendimento." className="w-full resize-y rounded-md border border-line bg-white px-3 py-2.5 text-sm text-ink placeholder:text-muted aria-invalid:border-red-500" />
+        <textarea id="attendance-observation" value={observation} onChange={event => { setObservation(event.target.value); setObservationError(''); setMessage('') }} required={isIncidentClosed(status)} aria-invalid={Boolean(observationError)} aria-describedby={observationError ? 'attendance-observation-error' : undefined} rows={3} placeholder="Adicione uma atualização ao histórico do atendimento." className="w-full resize-y rounded-md border border-line bg-surface px-3 py-2.5 text-sm text-ink placeholder:text-muted aria-invalid:border-danger" />
       </FormField>
       <div className="flex justify-end"><Button type="submit" disabled={!changed || conflict} className="disabled:cursor-not-allowed disabled:opacity-50">Salvar atualização</Button></div>
     </form> : incident.analystId ? <p className="text-sm text-muted">Somente o responsável pode alterar este atendimento.</p> : null}
-    {error && <div role="alert" className="mt-3 rounded-md border border-red-200 px-3 py-2 text-sm text-red-700">{error}</div>}
-    {message && <p role="status" className="mt-3 text-sm text-green-800">{message}</p>}
+    {error && <div role="alert" className="mt-3 rounded-md border border-danger-line px-3 py-2 text-sm text-danger">{error}</div>}
+    {message && <p role="status" className="mt-3 text-sm text-success">{message}</p>}
     {isPending && <p role="status" className="mt-3 text-sm text-muted">Salvando atendimento…</p>}
     {refreshing && <p role="status" className="mt-3 text-sm text-muted">Atualizando dados…</p>}
     </fieldset>

@@ -29,6 +29,7 @@ src/
 │   ├── ui/           # campos, seleção, calendário, botões e modais
 │   └── incident/     # cards, formulário e detalhes
 ├── hooks/            # autenticação, consultas, mutações e filtros
+├── contexts/         # preferência de tema e provedor compartilhado
 ├── interfaces/       # contratos da API e tipos de apresentação
 ├── pages/
 │   ├── Login/
@@ -41,6 +42,18 @@ src/
 O tema fica em `@theme` de `styles/base.css`, com identidade laranja e branca.
 A fonte IBM Plex Sans vem do Google Fonts, com alternativa local.
 No deploy, configure fallback para `index.html` nas rotas do frontend.
+
+## Tema
+
+O seletor oferece claro, escuro e sistema na tela de login e em Tema no menu
+da conta. O padrão acompanha o sistema, inclusive quando ele muda com a página
+aberta. A preferência é salva em `localStorage` como `logos.theme` e sincronizada
+entre abas; se o armazenamento estiver indisponível, a troca continua funcionando
+na sessão atual. Esse valor contém somente a preferência visual.
+
+`ThemeProvider` e `useTheme` compartilham a escolha. O atributo `data-theme` no
+elemento raiz seleciona as cores semânticas de superfícies, textos, bordas e estados.
+O HTML aplica o tema antes de carregar o React para evitar um clarão na abertura.
 
 ## Autenticação
 

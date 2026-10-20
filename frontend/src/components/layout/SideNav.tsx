@@ -9,7 +9,7 @@ export default function SideNav() {
   const analyst = user?.role === 'ANALYST'
   return (
     <>
-    <header className="relative z-10 flex items-center justify-between border-b border-line bg-white px-4 py-2 sm:hidden">
+    <header className="relative z-10 flex items-center justify-between border-b border-line bg-surface px-4 py-2 sm:hidden">
       <Link to={home} aria-label="Logos — início" className="flex items-center gap-2">
         <span className="grid size-8 place-items-center rounded-lg bg-brand text-2xl font-semibold text-white">↗</span>
         <span className="text-3xl font-semibold tracking-tighter">logos<span className="text-brand">.</span></span>
@@ -20,7 +20,7 @@ export default function SideNav() {
       <NavLink to={home} className={({ isActive }) => `flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium ${isActive ? 'bg-brand-soft text-brand-dark' : 'text-muted hover:bg-canvas'}`}><Icon name="grid" size={16} />Incidentes</NavLink>
       <NavLink to="/quadro" className={({ isActive }) => `flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium ${isActive ? 'bg-brand-soft text-brand-dark' : 'text-muted hover:bg-canvas'}`}><BoardIcon />Quadro</NavLink>
     </nav>}
-    <aside className="fixed inset-y-0 left-0 hidden w-19 flex-col border-r border-line bg-white px-2.5 pt-4 sm:flex xl:w-60 xl:px-4">
+    <aside className="fixed inset-y-0 left-0 hidden w-19 flex-col border-r border-line bg-surface px-2.5 pt-4 sm:flex xl:w-60 xl:px-4">
       <Link to={home} aria-label="Logos — início" className="mx-auto mb-5 flex items-center gap-2.5 xl:mx-3">
         <span className="grid size-9 place-items-center rounded-lg bg-brand text-3xl font-semibold text-white">↗</span>
         <span className="hidden text-4xl font-semibold tracking-tighter xl:block">logos<span className="text-brand">.</span></span>
