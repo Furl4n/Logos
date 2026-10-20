@@ -20,7 +20,15 @@ ps-autoU/
 │   ├── tests/
 │   ├── requirements.txt
 │   └── .env.example
-├── frontend/                # aplicação React; será criada posteriormente
+├── frontend/                # React + TypeScript + Vite + Tailwind CSS
+│   └── src/
+│       ├── components/      # layout, ui e componentes por domínio
+│       ├── hooks/           # estado e lógica das telas
+│       ├── interfaces/      # tipos e contratos
+│       ├── pages/           # telas em Nome/Index.tsx
+│       ├── routes/          # roteador, páginas e layout compartilhado
+│       ├── service/         # dados de exemplo; futuramente acesso à API
+│       └── styles/          # base do Tailwind e tema visual
 ├── database/
 │   └── migrations/          # migrations e scripts exclusivos do banco
 ├── docs/                    # documentação do projeto
@@ -40,16 +48,25 @@ Diretórios ainda não criados não representam funcionalidades implementadas; s
 O banco de dados escolhido é **PostgreSQL 14 ou superior**. A migration inicial está em `database/migrations/001_create_core_entities.sql` e cria:
 
 - `users`, com os papéis `DRIVER` e `ANALYST`;
-- `incidents`, incluindo categoria, criticidade, status e versão;
-- `incident_history`, uma linha do tempo geral para mudanças de status e criticidade.
+- `incidents`, incluindo categoria, criticidade, status, versão e `analyst_id`
+  opcional para o responsável atual;
+- `incident_history`, uma linha do tempo geral para status, criticidade, atribuição,
+  observações e reaberturas. Observações são novas linhas com autor e horário;
+  atribuições guardam os responsáveis anterior e novo com chaves estrangeiras.
 
-A migration também define validações, chaves estrangeiras, índices e triggers para `updated_at`.
+A migration também define validações, chaves estrangeiras e triggers para `updated_at`.
+Índices adicionais ficam para uma etapa posterior.
+
+Uma atualização pode gerar vários eventos na mesma versão: por exemplo, encerramento
+gera STATUS e OBSERVATION; reabertura gera REOPEN com justificativa e ASSIGNEE se
+houver troca de responsável. A aplicação insere tudo na mesma transação e preserva
+os eventos anteriores. Os papéis e as permissões são validados na camada de aplicação.
 
 ## Concorrência
 
-Alterações de status usarão controle otimista por versão. A API receberá a versão que o analista leu e fará uma atualização atômica condicionada a ela. Quando o incidente já tiver sido alterado, a API responderá `409 Conflict`, sem sobrescrever a mudança existente.
+Todas as alterações de atendimento usarão controle otimista por versão, incluindo observações, criticidade, atribuição e reabertura. A API receberá a versão lida e fará uma atualização atômica condicionada a ela. Se houver divergência, responderá `409 Conflict`, sem sobrescrever a mudança existente.
 
-O histórico de status deverá ser inserido na mesma transação que a atualização do incidente.
+Os eventos de histórico serão inseridos na mesma transação da alteração, agrupados por versão na resposta da API. O contrato prevê código público e evento de criação com autor; esses dois pontos ainda precisam ser incorporados à migration inicial.
 
 ## Docker
 
@@ -67,5 +84,5 @@ A pasta `database/` não conterá o Compose: ela guarda apenas migrations, seeds
 2. Configurar conexão com PostgreSQL e execução das migrations.
 3. Implementar autenticação e autorização por papel.
 4. Implementar incidentes, histórico e atualização concorrente.
-5. Criar o frontend React a partir do contrato da API.
+5. Integrar o frontend React existente ao contrato da API, removendo os mocks e o seletor temporário de perfil.
 6. Adicionar Docker, testes, documentação de setup e deploy.

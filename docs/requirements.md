@@ -57,8 +57,11 @@ analista.
 | Criar incidente próprio | Sim | Sim, selecionando o motorista associado |
 | Consultar incidentes próprios | Sim | Sim |
 | Consultar todos os incidentes | Não | Sim |
-| Filtrar a fila operacional | Não | Sim |
-| Alterar status | Não | Sim |
+| Filtrar incidentes acessíveis | Sim, somente os próprios | Sim, toda a operação |
+| Alterar status, criticidade e adicionar observações | Não | Somente o responsável, em atendimento ativo |
+| Assumir ocorrência sem responsável | Não | Sim |
+| Transferir atendimento ativo | Não | Somente o responsável |
+| Reabrir ocorrência encerrada | Não | Sim, com justificativa e assumindo a responsabilidade |
 
 Fluxo principal:
 
@@ -75,18 +78,20 @@ Fluxo principal:
 | ID | Requisito | Critério de aceite |
 |---|---|---|
 | RF-01 | Listar incidentes | O analista vê a lista de incidentes retornada pela API, ordenada para dar destaque à maior criticidade e, em seguida, aos mais recentes. |
-| RF-02 | Exibir prioridade de forma imediata | Cada item apresenta, no mínimo, título, criticidade, categoria, status, veículo e horário de registro; criticidade e status têm diferenciação visual que não depende apenas de cor. |
-| RF-03 | Filtrar por criticidade | O analista pode filtrar por Alta, Média e Baixa, inclusive combinando mais de um valor, se essa interação for adotada no front. |
+| RF-02 | Exibir prioridade de forma imediata | Cada item apresenta título, categoria, status, veículo e horário da ocorrência; a criticidade é identificada pelo grupo com rótulo textual e pela faixa lateral, sem depender apenas de cor. |
+| RF-03 | Filtrar por criticidade | Cada perfil pode selecionar Alta, Média ou Baixa, um valor por vez, dentro de seu escopo de consulta. |
 | RF-04 | Filtrar por categoria | O analista pode filtrar pelas categorias previstas neste documento. |
 | RF-05 | Combinar filtros | Ao aplicar criticidade e categoria, a lista mostra somente incidentes que atendem a todos os filtros ativos. |
 | RF-06 | Consultar detalhes | Ao selecionar um incidente, o analista vê todos os dados disponíveis dele sem perder o contexto da fila. |
 | RF-07 | Criar incidente manualmente | O motorista registra um incidente para si; o analista pode registrá-lo selecionando o motorista associado. Em ambos os casos, a API valida os campos obrigatórios e, após sucesso, o novo incidente fica visível na fila apropriada. |
 | RF-08 | Alterar status | O analista pode mudar o status de um incidente para um dos status permitidos. A interface mostra a confirmação e reflete o estado retornado pela API. |
 | RF-08A | Reclassificar criticidade | O analista pode alterar a criticidade após a triagem. A alteração usa a versão atual do incidente, fica registrada no histórico e atualiza sua posição na fila. |
-| RF-09 | Tratar atualização concorrente | A atualização de status envia a versão lida do incidente. Se ele tiver sido alterado por outro analista, a API rejeita a ação sem sobrescrever dados e a interface informa o conflito, oferecendo recarregar os dados. |
+| RF-09 | Tratar atualização concorrente | Toda atualização do atendimento envia a versão lida, inclusive observação, criticidade, atribuição e reabertura. Se houver divergência, a API rejeita sem sobrescrever dados e a interface oferece recarregar. |
 | RF-10 | Informar carregamento | Durante uma busca ou atualização, a interface mantém feedback visual e evita ações duplicadas incompatíveis. |
 | RF-11 | Informar ausência de dados | Sem incidentes — inicialmente ou após filtros — a interface explica o estado e permite limpar filtros quando aplicável. |
 | RF-12 | Tratar falha de rede/API | Se uma operação falhar, a interface exibe mensagem clara, preserva os dados já carregados quando possível e permite nova tentativa. |
+| RF-13 | Buscar e ordenar | Ambos os perfis podem buscar por título, código, motorista, placa e localização, filtrar por status e inverter a ordem temporal sem remover a precedência da criticidade. |
+| RF-14 | Consultar além de 100 incidentes | A listagem é paginada, inicialmente com até 100 registros, e permite carregar as páginas seguintes sem limitar o total do sistema. |
 
 ## 5. Regras de negócio
 
@@ -115,20 +120,33 @@ distintos. O analista pode reclassificar a criticidade após a triagem.
 - `CLOSED` — Fechado
 - `INCONCLUSIVE` — Inconclusivo
 
-Para o MVP, qualquer transição entre status permitidos será aceita. Caso a
-experiência exija restrições de transição, elas deverão ser documentadas antes de serem implementadas.
+Aberto e Em investigação são ativos. Fechado e Inconclusivo encerram o atendimento
+e bloqueiam alterações. Somente o responsável pode alterar status, criticidade
+ou adicionar observações a um atendimento ativo. O encerramento exige uma nova
+observação com o resultado ou a justificativa de inconclusão.
+
+Qualquer analista pode assumir uma ocorrência sem responsável; isso inicia a
+investigação. O responsável pode transferir um atendimento ativo a outro analista.
+Qualquer analista pode reabrir uma ocorrência encerrada com justificativa; ela
+retorna para Aberto e passa a ser atribuída a quem reabriu. Assunção, transferência
+e reabertura usam versão e ficam registradas no histórico geral.
+
+As observações são entradas imutáveis no histórico geral, com autor e horário;
+uma atualização não substitui textos anteriores. Analistas consultam todas as
+ocorrências; motoristas consultam somente as próprias, sem editar o atendimento.
 
 ### 5.4 Priorização padrão da fila
 
 1. Criticidade: Alta, Média, Baixa.
 2. Dentro da mesma criticidade: incidente mais recente primeiro.
 
-Status não remove automaticamente o incidente da lista. Essa decisão preserva a capacidade de consultar a operação completa; um filtro de status só será adicionado se for necessário à interface planejada.
+A visão inicial mostra somente ativos. Fechado e Inconclusivo continuam
+consultáveis pelos filtros de status ou pela opção Todos.
 
 ### 5.5 Concorrência
 
 Cada incidente possui uma versão inteira. Ao ler um incidente, o frontend
-recebe sua `version`; ao pedir mudança de status, ele deve reenviá-la. A API
+recebe sua `version`; em toda atualização do atendimento, ele deve reenviá-la. A API
 só atualiza se a versão recebida for a atual, incrementa-a após sucesso e
 responde `409 Conflict` caso exista divergência. Nenhuma atualização deve ser perdida silenciosamente.
 
@@ -153,12 +171,17 @@ responde `409 Conflict` caso exista divergência. Nenhuma atualização deve ser
 - Links enviados exclusivamente pela plataforma de recrutamento até o prazo do
   e-mail de confirmação.
 
-## 8. Decisões pendentes antes da modelagem de entidades
+## 8. Decisões consolidadas e integração pendente
 
-1. Definir quais campos além dos obrigatórios do case descrevem um incidente
-   (por exemplo, título, descrição, veículo, localização e horários).
-2. Definir o formato da lista: tabela, cartões ou uma composição dos dois.
-3. Definir se haverá filtro por status, apesar de ele não ser obrigatório.
+- Uma página `/incidentes`, adaptada ao perfil autenticado, com cards agrupados
+  por criticidade e filtros de busca, criticidade, categoria, status e ordem temporal.
+- Registro com título, descrição, motorista, caminhão, localização, categoria,
+  criticidade, data da ocorrência e código opcional de rota/entrega.
+- UUID identifica o recurso; código público `INC-...` identifica o chamado visualmente.
+- Contratos e validações estão em `api-contract.md`. O backend, a paginação,
+  a sessão real e os estados de rede ainda serão implementados.
+- A migration precisa contemplar o código público e o evento de criação no
+  histórico, preservando a autoria sem campo extra no incidente.
 
 ## 9. Evolução futura opcional — abertura por WhatsApp
 

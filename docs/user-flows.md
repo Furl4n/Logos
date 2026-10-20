@@ -7,23 +7,39 @@ uma tabela. Esse formato mantém o contexto de cada ocorrência, favorece a
 leitura sob pressão e se adapta naturalmente a telas menores.
 
 Os cards serão ordenados por criticidade (Alta, Média, Baixa) e, dentro de cada
-grupo, pelo incidente mais recente.
+grupo, pelo incidente mais recente por padrão. O analista pode inverter a ordem
+temporal dentro dos grupos. Os grupos têm cabeçalhos e contagens próprios.
+
+A visão inicial mostra somente incidentes ativos. Os resolvidos e a visão de todos
+ficam disponíveis no filtro de status. A fila aparece diretamente após os filtros,
+com as ocorrências de alta criticidade no primeiro grupo. Limpar filtros retorna
+à visão de ativos.
+
+Os cards ativos de alta criticidade usam faixa e borda vermelhas, com fundo branco.
+O cabeçalho do grupo identifica a criticidade por ícone e texto; não há selo vermelho
+Alta após o título. Todos os títulos usam o mesmo tamanho, peso e cor padrão.
+O tempo decorrido mantém destaque nos incidentes urgentes para
+apoiar a triagem. A localização fica nos detalhes. Incidentes resolvidos não recebem
+o tratamento de urgência.
 
 ## Telas
 
 ### 1. Login
 
 - Campos: e-mail e senha.
-- Após sucesso, motorista segue para `Meus incidentes`; analista segue para a
-  `Central de incidentes`.
+- Após sucesso, ambos seguem para `/incidentes`, com visão adaptada ao perfil.
 - Exibe erro de credenciais sem revelar qual campo está incorreto.
+- Token expirado limpa a sessão e exige novo login. Sair remove o token local.
+- No protótipo, links e seletor temporário permitem testar os perfis sem autenticação.
 
-### 2. Meus incidentes — motorista
+### 2. Incidentes — visão do motorista
 
 - Lista somente incidentes cujo motorista é o usuário autenticado.
 - Botão de destaque para registrar um novo incidente.
 - Cada card abre os detalhes e o histórico da ocorrência.
 - O motorista acompanha o status, mas não o altera.
+- Usa os mesmos filtros e ordenação da visão do analista, restritos aos próprios registros.
+- É a mesma página e rota, sem item duplicado no menu.
 
 ### 3. Registro de incidente
 
@@ -42,40 +58,49 @@ Para o motorista, o vínculo é automático. Para o analista, há seleção de u
 motorista cadastrado. Após sucesso, a aplicação confirma o registro e mostra o
 incidente na lista correspondente.
 
-### 4. Central de incidentes — analista
+### 4. Incidentes — visão do analista
 
 - Lista todos os incidentes em cards compactos.
-- Barra de filtros por criticidade e categoria.
+- Barra com busca, criticidade, categoria, status e ordenação temporal.
 - Botão para limpar filtros ativos.
 - Botão para registrar incidente em nome de um motorista.
 - Clique no card abre um painel lateral no desktop ou uma tela/modal no mobile.
+- Paginação inicial de até 100; permite carregar mais resultados e reinicia ao alterar filtros ou ordem.
 
 ### 5. Detalhe do incidente
 
-- Mostra os dados completos e a linha do tempo de mudanças de status.
-- Para analista, contém o seletor de novo status e ação de salvar.
-- Para analista, permite reclassificar a criticidade com a versão atual do
-  incidente; o novo valor reposiciona o card na fila.
+- Mostra os dados completos e a linha do tempo de criação, status, criticidade,
+  atribuição, observações e reaberturas, agrupadas por operação.
+- Analistas consultam qualquer ocorrência; somente o responsável altera status,
+  criticidade e adiciona observações em atendimentos ativos.
+- Sem responsável, a ação Assumir ocorrência atribui ao analista e inicia a investigação.
+- O responsável pode transferir o atendimento ativo para outro analista.
+- Observações são novas entradas imutáveis no histórico, com autor e horário.
+- Fechado e Inconclusivo encerram o atendimento e exigem uma nova observação.
+- Encerrados permitem somente consulta e a ação Reabrir ocorrência: qualquer
+  analista informa uma justificativa, assume a responsabilidade e retorna a Aberto.
+- As ações usam a versão atual; mudanças de criticidade reposicionam o card na fila.
 - Para motorista, é somente leitura.
 
 ## Conteúdo do card de incidente
 
 ```text
-[ALTA] [ABERTO]
-Pneu estourado na pista
-João da Silva · ABC-1234
-BR-040, km 511 · há 8 min
-Problema mecânico
+Grupo: Alta — atenção imediata
+Pneu estourado na pista  [Aberto]  INC-1048       há 8 min
+João da Silva · ABC-1234 | Problema mecânico   Ocorrência >
 ```
 
 Cada card deve ter:
 
-- faixa lateral, ícone e rótulo textual para a criticidade;
-- badge textual para status e categoria;
+- faixa lateral para criticidade, complementada pelo ícone e rótulo do grupo;
+- badge textual para status; criticidades Média e Baixa também mantêm selo no card;
 - título como informação de maior destaque;
-- motorista, caminhão, localização e horário como contexto secundário;
+- motorista, caminhão, categoria e horário como contexto secundário;
 - foco de teclado visível e área inteira clicável;
 - contraste suficiente sem depender somente da cor.
+
+A localização fica somente nos detalhes. O UUID é usado nas operações e o código
+público na apresentação. Títulos longos são truncados com reticências.
 
 ## Estados da interface
 
