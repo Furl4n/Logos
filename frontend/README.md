@@ -87,4 +87,13 @@ Transferências consultam analistas reais, excluindo o usuário atual.
 
 O contexto local e os mocks antigos foram removidos após concluir a integração.
 Para popular o banco de desenvolvimento, consulte `app.seed_incidents` no backend.
-A responsividade será refinada em uma etapa posterior.
+
+## Telas menores
+
+No celular, um cabeçalho compacto mantém o acesso ao início e ao menu da conta.
+Os filtros ficam em duas colunas, com busca na largura total; seleções longas
+são truncadas no campo e aparecem completas na lista de opções. Os cards
+distribuem título e metadados em linhas, mantendo o título truncado.
+Modais têm margens menores e rolagem interna; detalhes e atendimento adaptam
+as colunas ao espaço disponível. Em tablets, a navegação lateral usa ícones;
+em telas grandes, apresenta também os textos.

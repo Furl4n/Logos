@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCurrentUser, useLogout } from '../../hooks/useAuth'
 
-export default function UserMenu() {
+export default function UserMenu({ mobile = false }: { mobile?: boolean }) {
   const { data: user } = useCurrentUser()
   const logout = useLogout()
   const navigate = useNavigate()
@@ -38,7 +38,7 @@ export default function UserMenu() {
   }
 
   return (
-    <div ref={container} className="relative mt-auto border-t border-line pt-2 pb-4"
+    <div ref={container} className={mobile ? 'relative' : 'relative mt-auto border-t border-line pt-2 pb-4'}
       onBlur={event => {
         if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false)
       }}
@@ -50,7 +50,8 @@ export default function UserMenu() {
         }
       }}>
       {open && (
-        <div id={panelId} className="absolute bottom-full left-0 z-20 mb-1 w-56 rounded-lg border border-gray-300 bg-white p-1.5 shadow-lg xl:w-full">
+        <div id={panelId} className={`absolute z-20 w-56 rounded-lg border border-gray-300 bg-white p-1.5 shadow-lg ${mobile ? 'top-full right-0 mt-1' : 'bottom-full left-0 mb-1 xl:w-full'}`}>
+          {mobile && <div className="border-b border-line px-3 py-2 text-sm"><p className="break-words font-medium">{user?.name}</p><p className="mt-1 text-xs text-muted">{user?.role === 'DRIVER' ? 'Motorista' : 'Analista de operações'}</p></div>}
           {error && <p role="alert" className="px-3 py-2 text-sm text-red-700">{error}</p>}
           <button ref={logoutButton} type="button" aria-disabled={leaving} onClick={() => void handleLogout()}
             className="flex w-full items-center gap-2.5 rounded-md px-3 py-2.5 text-left text-sm font-medium text-ink hover:bg-canvas focus-visible:bg-canvas aria-disabled:opacity-50">

@@ -76,7 +76,7 @@ export default function IncidentAttendance({ incident }: { incident: Incident })
   return <section className="border-t border-line pt-4" aria-labelledby="attendance-title" aria-busy={isPending || refreshing}>
     <fieldset disabled={isPending || refreshing} className="min-w-0">
     <h3 id="attendance-title" className="mb-4 text-lg font-bold text-ink">Atendimento</h3>
-    <div className="mb-4 flex items-center justify-between gap-3 text-sm">
+    <div className="mb-4 flex flex-wrap items-center justify-between gap-3 text-sm">
       <div><span className="text-sm font-medium text-ink">Responsável</span><p className="mt-1 text-sm text-muted">{incident.assigneeName ?? 'Não atribuído'}</p></div>
       {!incident.analystId && !closed && <button type="button" disabled={conflict} onClick={() => commit({ action: 'assume', version: snapshot.version ?? 1 }, 'Atendimento assumido com sucesso.')} className="rounded-md border border-line px-3 py-2 font-medium text-brand-dark hover:bg-brand-soft disabled:opacity-50">Assumir ocorrência</button>}
       {canEdit && <button type="button" disabled={changed || conflict} onClick={() => { setTransferring(!transferring); setTargetId(''); setMessage('') }} className="rounded-md border border-line px-3 py-2 font-medium text-brand-dark hover:bg-brand-soft disabled:cursor-not-allowed disabled:opacity-50">{transferring ? 'Cancelar transferência' : 'Transferir'}</button>}
@@ -100,7 +100,7 @@ export default function IncidentAttendance({ incident }: { incident: Incident })
       }
       commit({ action: 'update', version: snapshot.version ?? 1, status, severity, observation }, 'Atendimento atualizado com sucesso.')
     }} className="space-y-4">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid gap-3 sm:grid-cols-2">
         <FormField id="attendance-status" label="Status" showRequiredIndicator={false}><FormSelect id="attendance-status" variant="field" label="Status" ariaLabel="Status" value={status} options={statusOptions} onChange={value => { setStatus(value as IncidentStatus); setObservationError(''); setMessage('') }} /></FormField>
         <FormField id="attendance-severity" label="Criticidade" showRequiredIndicator={false}><FormSelect id="attendance-severity" variant="field" label="Criticidade" ariaLabel="Criticidade" value={severity} options={severityOptions} onChange={value => { setSeverity(value as Severity); setMessage('') }} /></FormField>
       </div>

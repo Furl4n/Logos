@@ -5,6 +5,14 @@ import UserMenu from './UserMenu'
 export default function SideNav() {
   const home = '/incidentes'
   return (
+    <>
+    <header className="relative z-10 flex items-center justify-between border-b border-line bg-white px-4 py-2 sm:hidden">
+      <Link to={home} aria-label="Logos — início" className="flex items-center gap-2">
+        <span className="grid size-8 place-items-center rounded-lg bg-brand text-2xl font-semibold text-white">↗</span>
+        <span className="text-3xl font-semibold tracking-tighter">logos<span className="text-brand">.</span></span>
+      </Link>
+      <UserMenu mobile />
+    </header>
     <aside className="fixed inset-y-0 left-0 hidden w-19 flex-col border-r border-line bg-white px-2.5 pt-4 sm:flex xl:w-60 xl:px-4">
       <Link to={home} aria-label="Logos — início" className="mx-auto mb-5 flex items-center gap-2.5 xl:mx-3">
         <span className="grid size-9 place-items-center rounded-lg bg-brand text-3xl font-semibold text-white">↗</span>
@@ -22,5 +30,6 @@ export default function SideNav() {
       </nav>
       <UserMenu />
     </aside>
+    </>
   )
 }

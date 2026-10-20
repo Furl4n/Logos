@@ -12,6 +12,15 @@
   --color-line: #e4e7eb;
 }
 
+@keyframes sheet-enter {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@media (width < 40rem) and (prefers-reduced-motion: no-preference) {
+  .mobile-sheet { animation: sheet-enter 220ms ease-out; }
+}
+
 @layer base {
   body { @apply m-0 min-w-80 bg-white font-sans text-ink antialiased; }
   button, input, select { font: inherit; }
@@ -21,4 +30,7 @@
     @apply outline-2 outline-offset-4 outline-brand;
   }
   svg { @apply shrink-0; }
+  @media (width < 40rem) {
+    input, textarea, select { font-size: 1rem; }
+  }
 }

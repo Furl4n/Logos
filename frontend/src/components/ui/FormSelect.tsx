@@ -119,7 +119,7 @@ export default function FormSelect({ label, ariaLabel, value, options, onChange,
   }
 
   return (
-    <div ref={rootRef} className={`relative max-w-full ${variant === 'field' ? 'w-full' : ''}`} onBlur={event => {
+    <div ref={rootRef} className={`relative min-w-0 max-w-full ${variant === 'field' ? 'w-full' : 'sm:shrink-0'}`} onBlur={event => {
       if (!event.currentTarget.contains(event.relatedTarget) && !listRef.current?.contains(event.relatedTarget)) setOpen(false)
     }}>
       <button
@@ -140,13 +140,13 @@ export default function FormSelect({ label, ariaLabel, value, options, onChange,
             showOptions(event.key === 'ArrowUp' ? options.length - 1 : Math.max(selectedIndex, 0))
           }
         }}
-        className={`inline-flex h-10 max-w-full items-center gap-1.5 rounded-md border bg-white text-sm ${variant === 'field' ? 'w-full justify-between px-3' : 'px-2'} ${invalid ? 'border-red-500' : open || active ? 'border-brand/50' : 'border-line hover:border-slate-400'}`}
+        className={`inline-flex h-10 max-w-full items-center gap-1.5 rounded-md border bg-white text-sm ${variant === 'field' ? 'w-full justify-between px-3' : 'w-full justify-between px-2 sm:w-auto'} ${invalid ? 'border-red-500' : open || active ? 'border-brand/50' : 'border-line hover:border-slate-400'}`}
       >
         <span className="inline-flex min-w-0 items-baseline gap-1.5">
           {variant === 'filter' && <span className="shrink-0 text-xs font-medium text-brand-dark">{label}</span>}
           <span className={`min-w-0 truncate ${variant === 'filter' ? 'font-medium' : 'font-normal'} ${selected ? 'text-ink' : 'text-muted'}`}>{selected?.label ?? placeholder}</span>
         </span>
-        <span className={`inline-flex text-muted ${open ? '-rotate-90' : 'rotate-90'}`}><Icon name="arrow" size={16} /></span>
+        <span className={`inline-flex shrink-0 text-muted ${open ? '-rotate-90' : 'rotate-90'}`}><Icon name="arrow" size={16} /></span>
       </button>
 
       {open && createPortal(

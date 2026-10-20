@@ -2,7 +2,7 @@ import LoginForm from './LoginForm'
 
 export default function Login() {
   return (
-    <main className="grid min-h-dvh lg:grid-cols-[1fr_1.15fr]">
+    <main className="grid min-h-dvh grid-rows-[auto_1fr] lg:grid-cols-[1fr_1.15fr] lg:grid-rows-1">
       <section aria-label="Logos — gestão de transporte" className="flex flex-col bg-brand-soft px-7 py-8 sm:px-12 lg:px-16 lg:py-12">
         <div aria-label="Logos" className="flex items-center gap-2.5">
           <span aria-hidden="true" className="grid size-9 place-items-center rounded-lg bg-brand text-3xl font-semibold text-white">↗</span>
