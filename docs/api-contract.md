@@ -1,8 +1,8 @@
 # Contrato mínimo da API
 
 Base: `/api/v1`. As rotas deste contrato estão implementadas no backend, incluindo
-autenticação, consultas de usuários, incidentes e atendimento. A integração com o
-frontend ainda está pendente.
+autenticação, consultas de usuários, incidentes e atendimento, e já são usadas
+pela aplicação frontend.
 JSON com campos camelCase e enums em inglês, traduzidos pelo front. IDs são UUIDs.
 Datas ISO 8601 com fuso, retornadas em UTC (`Z`). As rotas protegidas usam cookie
 `logos_session` HttpOnly, Secure em produção, SameSite=Lax, Path=/api/v1, sem Domain.
@@ -167,7 +167,7 @@ Recebe `title`, `description`, `category`, `severity`, `truckPlate`, `location`,
 | `driverId` | UUID de DRIVER existente, obrigatório para analista |
 
 - Motorista é associado ao usuário autenticado; enviar `driverId` nesse perfil
-  retorna `422`. A integração deve omitir esse campo, mesmo que o formulário local o use.
+  retorna `422`. A integração omite esse campo para motoristas autenticados.
 - Campos desconhecidos retornam `422`, inclusive status, responsável, código,
   versão e datas geradas pelo servidor. A mesma rejeição vale para os outros corpos e filtros.
 - Servidor define OPEN, responsável nulo, versão 1, código, `reportedAt`,
@@ -254,13 +254,14 @@ O front usa `code`, não compara mensagens. Falhas internas não expõem SQL ou 
 | `422` | `INVALID_STATE` | Alteração em encerrado, reabertura de ativo ou transferência para si mesmo |
 | `500` | `INTERNAL_ERROR` | Falha inesperada, sem alteração parcial |
 
-## Ajustes pendentes para integração
+## Decisões de escopo e evolução
 
 - Código público e suporte a CREATED estão na migration `002`. A criação já
   grava o evento de versão 1 com o autor real na mesma transação do incidente.
   Incidentes antigos recebem código, mas não recebem autoria inferida retroativamente.
-- Front local: mapear nomes traduzidos, IDs de exemplo, `plate`, `route` e histórico
-  textual para o contrato; UUID nas operações e código na apresentação.
-- Integrar paginação, sessão real, estados de rede e erros. Remover o seletor de perfil.
+- O frontend converte nomes traduzidos para enums, usa UUID nas operações e
+  apresenta o código público. A paginação usa até 100 registros por página.
+- A concorrência é controlada pela versão do incidente; conflitos retornam `409`
+  com `currentIncident`, que permite atualizar a interface antes de uma nova tentativa.
 - Não há endpoints de cadastro, exclusão, edição geral, histórico separado ou
   observações separadas: os fluxos atuais não os exigem.
