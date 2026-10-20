@@ -1,58 +1,8 @@
 # Frontend — Logos
 
-Interface em React, TypeScript, Vite e Tailwind CSS para a central de incidentes do analista.
-
-## Organização
-
-Segue o padrão de pastas do frontend do ControlaPET, com telas em `pages/Nome/Index.tsx`:
-
-```text
-src/
-├── components/
-│   ├── layout/       # estrutura compartilhada e navegação lateral
-│   ├── ui/           # botão, ícones e modal acessível
-│   └── incident/     # card, detalhes e formulário de registro
-├── context/          # estado compartilhado dos incidentes locais
-├── hooks/            # consultas e mutações da API; estado e filtros da fila local
-├── interfaces/       # tipos da interface e contratos da API
-├── pages/
-│   └── Incidentes/   # Index.tsx, cabeçalho, filtros e lista
-├── routes/           # AppRouter.tsx e Routes.tsx
-├── service/          # cliente HTTP, sessão, cache e dados de exemplo
-├── styles/           # base.css: Tailwind, tema e estilos globais
-├── App.tsx
-└── main.tsx
-```
-
-Os componentes usam classes utilitárias do Tailwind. As cores da marca e a fonte
-ficam centralizadas no `@theme` de `src/styles/base.css`. A integração usa
-`@tailwindcss/vite`, sem configuração PostCSS separada.
-
-Assim como no Catálogo da referência, `Index.tsx` coordena o estado e os modais;
-`IncidentHeader`, `IncidentToolbar` e `IncidentList` cuidam da
-apresentação. Os cards e os detalhes ficam nos componentes do domínio.
-
-## Rotas
-
-`routes/Routes.tsx` declara as páginas com React Router e o layout compartilhado.
-`routes/AppRouter.tsx` conecta o roteador à aplicação. `AppLayout` renderiza a
-página ativa por meio de `Outlet`.
-
-- `/login`: autenticação real com e-mail e senha; contas autenticadas seguem para a fila.
-- `/incidentes`: página protegida, adaptada ao cargo retornado pela API.
-- `/` e caminhos desconhecidos: redirecionam para `/login`.
-
-A navegação interna usa `Link` e `NavLink`. No deploy, o servidor deverá servir
-`index.html` para as rotas da aplicação, permitindo abrir `/incidentes` diretamente.
-O `IncidentProvider` mantém os incidentes locais compartilhados entre a fila e
-o painel de detalhes.
-
-`AuthRoute` consulta `/auth/me` ao abrir a aplicação, apresenta carregamento ou
-erro de conexão com opção de tentar novamente e exige sessão para acessar a fila.
-O formulário usa `useLogin`; a barra lateral mostra o usuário real e permite sair.
-Ainda não há cadastro público: crie uma conta com `python -m app.create_user` no
-backend. Inicie a API e configure a origem do Vite em `FRONTEND_ORIGINS`.
-Os incidentes e as ações de atendimento continuam locais até a próxima integração.
+React, TypeScript, Vite e Tailwind CSS para a central de incidentes.
+A estrutura segue o padrão do ControlaPET: páginas modularizadas, hooks por
+domínio, contratos em interfaces e acesso HTTP em service.
 
 ## Executar
 
@@ -62,114 +12,72 @@ npm install
 npm run dev
 ```
 
-Abra o endereço exibido pelo Vite. Para gerar a versão de produção, use `npm run build`.
+Configure `VITE_API_URL` conforme `.env.example` (padrão:
+`http://localhost:8000/api/v1`). Inicie o backend e configure a origem do Vite em
+`FRONTEND_ORIGINS`. Para HTTP local, use `COOKIE_SECURE=false` no backend.
+Contas são criadas pelo comando `python -m app.create_user` no backend.
 
-## Hooks da API
+`npm run build` verifica TypeScript e gera a versão de produção;
+`npm run lint` executa a análise estática.
 
-Configure `VITE_API_URL` conforme `.env.example` (padrão: `http://localhost:8000/api/v1`).
-O cliente HTTP usa `fetch`, e o React Query compartilha o cache pela aplicação,
-seguindo a organização por domínio do ControlaPET.
+## Organização
 
-- `useAuth.ts`: login, usuário autenticado e logout. A API define um cookie `HttpOnly`;
-  login e logout limpam o cache para impedir reaproveitamento entre contas.
-  O frontend envia cookies com `credentials: include` e o cabeçalho `X-CSRF-Protection`.
-  A sessão é consultada em `/auth/me`; o token não é exposto ao JavaScript.
-- `useUsers.ts`: motoristas e analistas; habilite as consultas apenas para analistas.
-- `useIncidentApi.ts`: lista paginada, detalhes, criação, atualização, atribuição e reabertura.
-  As mutações atualizam os detalhes e invalidam as listas. Conflitos HTTP 409
-  atualizam o cache com `currentIncident` e continuam disponíveis como erro para a tela.
-- `ApiError`: expõe `status`, `data.code`, erros de campos e a ocorrência em conflito.
+```text
+src/
+├── components/
+│   ├── layout/       # sidebar, menu da conta e estrutura compartilhada
+│   ├── ui/           # campos, seleção, calendário, botões e modais
+│   └── incident/     # cards, formulário e detalhes
+├── context/          # protótipo local antigo, fora da aplicação atual
+├── hooks/            # autenticação, consultas, mutações e filtros
+├── interfaces/       # contratos da API e tipos de apresentação
+├── pages/
+│   ├── Login/
+│   └── Incidentes/   # coordenação, filtros, cabeçalho e lista
+├── routes/           # roteador e proteção da sessão
+├── service/          # fetch, React Query e tradução dos contratos
+└── styles/           # Tailwind, tema e estilos globais
+```
 
-Os tipos de transporte em `interfaces/Api.ts` preservam enums e UUIDs do backend.
-Os tipos de apresentação em `Incident.ts` e os hooks locais continuam atendendo às
-telas de demonstração. A próxima etapa é conectar essas telas aos novos hooks,
-incluindo os estados de carregamento, erro, sessão expirada e paginação.
+O tema fica em `@theme` de `styles/base.css`, com identidade laranja e branca.
+A fonte IBM Plex Sans vem do Google Fonts, com alternativa local.
+No deploy, configure fallback para `index.html` nas rotas do frontend.
 
-## Versão inicial
+## Autenticação
 
-- Tela principal com identidade laranja e branca e layout responsivo.
-- Fila diretamente após os filtros, agrupada em Alta, Média e Baixa, com contagens.
-- Cards ativos de alta criticidade destacados por faixa, borda, ícone e texto.
-- Exibição inicial de ativos; Fechado, Inconclusivo e Todos disponíveis pelo filtro de status.
-- Busca por título, código, motorista, placa e localização.
-- Filtros combináveis por criticidade, categoria e status; ação para limpar filtros.
-- Criticidade sempre prioritária: Alta, Média e Baixa. Dentro de cada grupo,
-  ordenação por data da ocorrência: mais recentes (padrão) ou mais antigos,
-  mantida ao limpar filtros.
-- Estado sem resultados e painel de consulta da ocorrência.
-- Modal de registro com seleção de motorista cadastrado, categoria, criticidade,
-  data e hora, título, descrição, caminhão, localização e rota opcional.
-- Validação de campos obrigatórios, data não futura e limites de título (160),
-  identificador do caminhão (10) e rota (50 caracteres).
-- Inclusão imediata na fila ao registrar.
-- Navegação por teclado, fechamento dos painéis com Escape e retorno do foco.
+`/login` usa `useLogin`. O backend define um cookie HttpOnly; o frontend envia
+`credentials: include` e o cabeçalho `X-CSRF-Protection` nas alterações.
+O token não é disponibilizado ao JavaScript. Login e logout limpam o cache.
+`AuthRoute` consulta `/auth/me` para restaurar a sessão e proteger `/incidentes`.
+Falhas de conexão oferecem nova tentativa; sessão ausente direciona ao login.
+O menu da conta mostra o usuário real e permite sair.
 
-Limpar filtros retorna à visão de incidentes ativos.
+## Fila e registro
 
-Os dados são exemplos locais, sem integração com API. Os novos registros ficam em
-memória durante a sessão e são descartados ao recarregar a página. A seleção de
-motorista usa cadastros de exemplo; a integração com usuários reais depende da API.
-A tela de login ainda não autentica; os links de demonstração permitem revisar os dois perfis. A fonte IBM Plex Sans é carregada pelo
-Google Fonts; o sistema usa uma fonte alternativa quando ela não está disponível.
+`useIncidents` coordena os filtros, com busca após 300 ms. Criticidade, categoria,
+status e ordenação são enviados à API; mudanças voltam à primeira página.
+Cada página contém até 100 incidentes, com navegação quando há mais resultados.
+A ordenação do servidor prioriza criticidade e depois o horário escolhido.
+O backend restringe motoristas aos próprios incidentes.
 
-Ao salvar, os filtros retornam à visão de ativos e a ordenação temporal volta para
-mais recentes, mantendo a criticidade como prioridade. O formulário fica em
-`components/incident/IncidentForm.tsx`, separado do modal e do estado da página.
+`incidentMapper.ts` traduz enums, referências e histórico. Cards exibem o código
+público, título truncado e tempo relativo; os detalhes são consultados pelo UUID.
+A interface apresenta carregamento, erro com nova tentativa e lista vazia.
 
-## Atendimento local
+O formulário registra na API, usa motoristas reais e vincula automaticamente
+a conta autenticada quando o cargo é motorista. Após salvar, invalida a fila,
+limpa os filtros e retorna à ordenação mais recente. Os campos validam data não
+futura e limites de título (160), caminhão (10) e rota opcional (50 caracteres).
 
-O painel de detalhe permite assumir uma ocorrência não atribuída. A sessão de
-exemplo usa Lucas Costa (`service/mockAnalysts.ts`); assumir atribui a ele e muda
-o status para Em investigação. Apenas o responsável edita status e criticidade,
-adiciona observações ou transfere o atendimento ativo para outro analista.
-As observações são entradas imutáveis do histórico geral, com autor e horário;
-o campo fica vazio após salvar para receber uma nova entrada.
-Salvar atualiza a fila e seus filtros imediatamente; o painel permanece aberto.
+## Atendimento
 
-Aberto e Em investigação são ativos; Fechado e Inconclusivo encerram o atendimento
-e exigem uma nova observação. Encerrados ficam somente para consulta, com ação de
-reabrir disponível para qualquer analista: exige justificativa, retorna para Aberto
-e atribui a ocorrência a quem reabriu. As entradas anteriores permanecem intactas.
-Essas regras também são aplicadas pelo estado local, não somente pelos componentes.
+Detalhes, responsável e histórico são consultados na API. O painel permanece
+somente para consulta enquanto as ações de assumir, transferir, atualizar e
+reabrir não forem conectadas. Seus hooks já estão em `useIncidentApi.ts`;
+conflitos HTTP 409 atualizam o cache com `currentIncident` e retornam erro à tela.
+`ApiError` expõe status HTTP, código, erros de campo e ocorrência em conflito.
 
-O estado local compara a versão lida com a atual antes de salvar. Em caso de
-divergência, mantém a edição e oferece recarregar os dados, descartando o rascunho.
-Isso prepara a interface para o conflito da API; não implementa concorrência entre
-sessões ou autenticação real. Tudo é descartado ao
-recarregar a página.
-
-O protótipo usa os quatro status previstos nos requisitos. A migration inicial já
-prevê responsável e entradas de observação no histórico geral. A integração ainda
-deve implementar autenticação, autorização no backend e a
-persistência efetiva desses dados.
-
-## Área do motorista
-
-A página `/incidentes` usa o perfil do `DemoProfileProvider` para adaptar a lista,
-os filtros e os modais. No perfil motorista, limita a consulta por `driverId` do
-motorista de exemplo (`currentDriver`, Carlos Henrique).
-O formulário já vincula esse motorista, sem permitir selecionar outro. Novos
-registros identificam o motorista como autor do histórico e aparecem também na
-central do analista enquanto a sessão local estiver aberta.
-
-Os detalhes mostram responsável e histórico somente para consulta, sem assumir,
-transferir, editar ou reabrir. O estado local também rejeita alterações de atendimento
-nesse perfil e vincula os registros ao motorista atual.
-
-O perfil pode ser escolhido nos links da demonstração do login ou no seletor
-temporário do menu lateral expandido. Alternar o perfil limpa filtros e fecha modais,
-mas mantém os incidentes na memória. Não há página ou item de menu duplicado.
-As rotas ainda são públicas; esse estado de demonstração não substitui a autenticação
-e a autorização que deverão existir no backend.
-
-## Cenário de revisão visual
-
-`service/mockIncidents.ts` fornece 100 ocorrências determinísticas, com diferentes
-criticidades, status, títulos longos, motoristas e locais. Os tempos relativos usam
-o instante fixo de demonstração de 19/10/2026 às 15h (UTC−3).
-
-A visão inicial mostra apenas as ocorrências ativas; use status `Todos` para
-exibir as 100. Os cards compactos mantêm títulos em uma linha, com reticências
-quando necessário, e o tempo à direita. A localização fica nos detalhes da
-ocorrência. A responsividade será refinada em outra etapa. Esse cenário permite revisar a
-densidade no navegador, sem representar uma medição de tempo de triagem.
+Os arquivos `mock*`, o contexto local e os componentes antigos de atendimento
+permanecem como referência do protótipo; a aplicação não usa o `IncidentProvider`.
+Para popular o banco de desenvolvimento, consulte `app.seed_incidents` no backend.
+A responsividade será refinada em uma etapa posterior.

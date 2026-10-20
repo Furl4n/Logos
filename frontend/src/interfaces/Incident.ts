@@ -21,6 +21,8 @@ export type UpdateIncidentInput = { version: number } & (
 
 export interface Incident {
   id: string
+  code?: string
+  assigneeName?: string
   title: string
   driver: string
   driverId?: string
