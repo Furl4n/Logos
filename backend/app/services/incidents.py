@@ -63,6 +63,8 @@ def _history(events: list[dict]) -> list[IncidentHistoryEntry]:
 
 
 def get_incidents(connection: Connection, user: User, filters: IncidentFilters) -> IncidentPage:
+    if user.role == UserRole.DRIVER and filters.assignment != "ALL":
+        raise APIError(403, "FORBIDDEN", "O filtro de responsável é exclusivo de analistas.")
     rows, total = repository.list_incidents(connection, user, filters)
     return IncidentPage(
         page=filters.page, pageSize=filters.pageSize, total=total,

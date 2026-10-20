@@ -37,14 +37,14 @@ export default function Modal({ title, caption, onClose, children, sidePanel = f
       previousFocus?.focus()
     }
   }, [])
-  return <div className={`fixed inset-0 z-20 flex bg-slate-900/30 ${sidePanel ? 'justify-end' : 'items-center justify-center p-5'}`} onClick={onClose}>
-    <section ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="dialog-title" onClick={event => event.stopPropagation()} className={sidePanel ? 'h-full w-full max-w-118 overflow-hidden bg-white shadow-xl' : `w-full overflow-hidden rounded-xl bg-white shadow-xl ${wide ? 'max-w-180' : 'max-w-105'}`}>
-      <div className={sidePanel ? 'h-full overflow-y-auto px-6 pt-3 pb-6 sm:px-8 sm:pb-8' : 'max-h-[calc(100dvh-2.5rem)] overflow-y-auto px-4 pt-4 pb-3'}>
+  return <div className={`fixed inset-0 z-20 flex items-end justify-center bg-slate-900/30 pt-4 ${sidePanel ? 'sm:items-stretch sm:justify-end sm:pt-0' : 'sm:items-center sm:p-5'}`} onClick={onClose}>
+    <section ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="dialog-title" onClick={event => event.stopPropagation()} className={`mobile-sheet w-full overflow-hidden rounded-t-2xl bg-white shadow-xl ${sidePanel ? 'sm:h-full sm:max-w-118 sm:rounded-none' : `sm:rounded-xl ${wide ? 'sm:max-w-180' : 'sm:max-w-105'}`}`}>
+      <div className={`max-h-[calc(100dvh-1rem)] overflow-y-auto overscroll-contain px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] ${sidePanel ? 'sm:h-full sm:max-h-none sm:px-8 sm:pt-3 sm:pb-8' : 'sm:max-h-[calc(100dvh-2.5rem)] sm:pb-3'}`}>
       <div className={`${caption ? 'mb-2' : 'mb-5'} flex items-center justify-between gap-4`}>
         {caption ? <span className="text-xs text-muted">{caption}</span> : <h2 id="dialog-title" className="text-2xl leading-snug font-medium tracking-tight">{title}</h2>}
         <button type="button" aria-label="Fechar painel" onClick={onClose} className="grid size-8 shrink-0 place-items-center rounded-md hover:bg-brand-soft hover:text-brand-dark"><Icon name="close" /></button>
       </div>
-      {caption && <h2 id="dialog-title" className="mb-3 text-2xl leading-snug font-medium tracking-tight">{title}</h2>}
+      {caption && <h2 id="dialog-title" className="mb-3 break-words text-2xl leading-snug font-medium tracking-tight">{title}</h2>}
       {children}
       </div>
     </section>

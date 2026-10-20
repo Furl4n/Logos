@@ -86,6 +86,25 @@ class IncidentTestCase(unittest.TestCase):
 
 
 class IncidentListTests(IncidentTestCase):
+    def test_assignment_filters_and_pagination(self):
+        other = self.new_user(UserRole.ANALYST)
+        self.connection.execute("UPDATE incidents SET analyst_id = %s WHERE id = %s",
+                                (other.id, self.medium["id"]))
+        mine = self.get(assignment="MINE").json()
+        self.assertEqual(mine["total"], 1)
+        self.assertEqual(mine["items"][0]["id"], self.high_old["id"])
+        unassigned = self.get(assignment="UNASSIGNED", pageSize=1).json()
+        self.assertEqual(unassigned["total"], 2)
+        self.assertEqual(len(unassigned["items"]), 1)
+        self.assertEqual(self.get(assignment="MINE", category="ROAD_BLOCK").json()["total"], 0)
+        self.assertEqual(self.get(assignment="invalid").status_code, 422)
+
+    def test_driver_cannot_use_analyst_assignment_filters(self):
+        self.headers = {"Authorization": f"Bearer {create_access_token(self.driver.id)}"}
+        for assignment in ("MINE", "UNASSIGNED"):
+            self.assertEqual(self.get(assignment=assignment).status_code, 403)
+        self.assertEqual(self.get(assignment="ALL").json()["total"], 3)
+
     def test_default_active_scope_and_priority_order(self):
         result = self.get()
         self.assertEqual(result.status_code, 200, result.text)
