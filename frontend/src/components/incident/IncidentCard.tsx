@@ -37,7 +37,7 @@ export default function IncidentCard({ incident, onSelect }: { incident: Inciden
             {incident.severity}
         </span>}
         <span className={`shrink-0 rounded border px-2 py-0.5 text-xs ${status}`}>{incident.status}</span>
-        <span className="shrink-0 text-xs tracking-wide text-muted">{incident.id}</span>
+        <span className="shrink-0 text-xs tracking-wide text-muted">{incident.code ?? incident.id}</span>
         </div>
         <span className={`ml-auto flex shrink-0 items-center gap-1.5 whitespace-nowrap text-sm ${urgent ? 'font-semibold text-red-800' : 'text-muted'}`}>
           <Icon name="clock" size={16} />{incident.time}

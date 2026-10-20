@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     app_name: str = "Logos API"
     database_url: SecretStr | None = None
     jwt_secret_key: SecretStr | None = None
+    cookie_secure: bool = True
+    frontend_origins: list[str] = ["http://localhost:5173"]
 
 
 @lru_cache

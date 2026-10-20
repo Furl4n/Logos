@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import Depends
+from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from psycopg import Connection
 
@@ -17,11 +17,15 @@ bearer = HTTPBearer(auto_error=False)
 
 def get_current_user(
     connection: Database,
+    request: Request,
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer)],
 ) -> User:
-    if credentials is None:
+    token = request.cookies.get("logos_session")
+    if token is None and credentials is not None:
+        token = credentials.credentials
+    if token is None:
         raise APIError(401, "UNAUTHENTICATED", "Autenticação necessária.")
-    user = find_by_id(connection, token_user_id(credentials.credentials))
+    user = find_by_id(connection, token_user_id(token))
     if user is None:
         raise APIError(401, "UNAUTHENTICATED", "Sessão inválida ou expirada.")
     return user

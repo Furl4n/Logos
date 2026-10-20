@@ -1,11 +1,14 @@
 # Contrato mínimo da API
 
 Base: `/api/v1`. As rotas deste contrato estão implementadas no backend, incluindo
-autenticação, consultas de usuários, incidentes e atendimento. A integração com o
-frontend ainda está pendente.
+autenticação, consultas de usuários, incidentes e atendimento, e já são usadas
+pela aplicação frontend.
 JSON com campos camelCase e enums em inglês, traduzidos pelo front. IDs são UUIDs.
-Datas ISO 8601 com fuso, retornadas em UTC (`Z`). Exceto login, todas as rotas
-exigem `Authorization: Bearer <accessToken>`.
+Datas ISO 8601 com fuso, retornadas em UTC (`Z`). As rotas protegidas usam cookie
+`logos_session` HttpOnly, Secure em produção, SameSite=Lax, Path=/api/v1, sem Domain.
+Bearer continua aceito para clientes externos. Operações com cookie, login e logout
+exigem `X-CSRF-Protection: 1`; Origin, quando presente, deve constar em FRONTEND_ORIGINS.
+CORS permite credenciais somente para essas origens explícitas.
 
 ## Modelos de resposta
 
@@ -82,8 +85,8 @@ Uma entrada agrupa os eventos da mesma operação pela versão do incidente:
 ### `POST /auth/login`
 
 Recebe `{ "email": "lucas@example.com", "password": "senha" }`.
-Retorna `200` com `accessToken`, `tokenType: "Bearer"`, `expiresIn: 3600` (segundos)
-e `user` no formato de usuário autenticado. Duração inicial do token: uma hora.
+Retorna `200` com `expiresIn: 3600` (segundos) e `user` no formato de usuário
+autenticado. Define o cookie da sessão por uma hora; não retorna token no JSON.
 E-mail válido, até 255 caracteres, espaços externos removidos e comparação sem
 diferenciar maiúsculas; cadastro/seed deve usar a mesma normalização. Senha
 obrigatória, sem trim ou transformação.
@@ -95,8 +98,14 @@ Não há cadastro público, refresh token ou revogação de token neste contrato
 
 Retorna `200` com usuário autenticado, restaurando a sessão e a visão da página
 única `/incidentes`. Token ausente, inválido ou expirado retorna `401`.
-Ao expirar, o front limpa a sessão e solicita login; sair remove o token local.
+Ao expirar, o front limpa o cache e solicita login.
 Sem revogação, tokens emitidos continuam válidos até expirar.
+
+### `POST /auth/logout`
+
+Retorna `204` e remove o cookie, inclusive quando a sessão expirou.
+Exige o mesmo cabeçalho de proteção CSRF do login. O front limpa seu cache após sucesso.
+Isso não revoga cópias previamente roubadas do JWT.
 
 ## Usuários
 
@@ -158,7 +167,7 @@ Recebe `title`, `description`, `category`, `severity`, `truckPlate`, `location`,
 | `driverId` | UUID de DRIVER existente, obrigatório para analista |
 
 - Motorista é associado ao usuário autenticado; enviar `driverId` nesse perfil
-  retorna `422`. A integração deve omitir esse campo, mesmo que o formulário local o use.
+  retorna `422`. A integração omite esse campo para motoristas autenticados.
 - Campos desconhecidos retornam `422`, inclusive status, responsável, código,
   versão e datas geradas pelo servidor. A mesma rejeição vale para os outros corpos e filtros.
 - Servidor define OPEN, responsável nulo, versão 1, código, `reportedAt`,
@@ -245,13 +254,14 @@ O front usa `code`, não compara mensagens. Falhas internas não expõem SQL ou 
 | `422` | `INVALID_STATE` | Alteração em encerrado, reabertura de ativo ou transferência para si mesmo |
 | `500` | `INTERNAL_ERROR` | Falha inesperada, sem alteração parcial |
 
-## Ajustes pendentes para integração
+## Decisões de escopo e evolução
 
 - Código público e suporte a CREATED estão na migration `002`. A criação já
   grava o evento de versão 1 com o autor real na mesma transação do incidente.
   Incidentes antigos recebem código, mas não recebem autoria inferida retroativamente.
-- Front local: mapear nomes traduzidos, IDs de exemplo, `plate`, `route` e histórico
-  textual para o contrato; UUID nas operações e código na apresentação.
-- Integrar paginação, sessão real, estados de rede e erros. Remover o seletor de perfil.
+- O frontend converte nomes traduzidos para enums, usa UUID nas operações e
+  apresenta o código público. A paginação usa até 100 registros por página.
+- A concorrência é controlada pela versão do incidente; conflitos retornam `409`
+  com `currentIncident`, que permite atualizar a interface antes de uma nova tentativa.
 - Não há endpoints de cadastro, exclusão, edição geral, histórico separado ou
   observações separadas: os fluxos atuais não os exigem.

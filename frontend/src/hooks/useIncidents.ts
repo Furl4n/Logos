@@ -1,36 +1,37 @@
-import { useState } from 'react'
-import { useIncidentStore } from './useIncidentStore'
-import type { Severity, TimeOrder } from '../interfaces/Incident'
-import { isIncidentClosed } from '../interfaces/Incident'
+import { useEffect, useState } from 'react'
+import type { TimeOrder } from '../interfaces/Incident'
+import { useIncidentList } from './useIncidentApi'
+import { categoryLabels, enumValue, severityLabels, statusLabels, toIncident } from '../service/incidentMapper'
 
-const severityPriority: Record<Severity, number> = { Alta: 0, Média: 1, Baixa: 2 }
-
-export function useIncidents(driverId?: string) {
-  const { incidents: allIncidents, createIncident } = useIncidentStore()
-  const incidents = driverId ? allIncidents.filter(incident => incident.driverId === driverId) : allIncidents
+export function useIncidents() {
+  const [filters, setFilters] = useState({ search: '', severity: 'Todas', category: 'Todas', status: 'Ativos', timeOrder: 'newest' as TimeOrder, page: 1 })
   const [search, setSearch] = useState('')
-  const [severity, setSeverity] = useState('Todas')
-  const [category, setCategory] = useState('Todas')
-  const [status, setStatus] = useState('Ativos')
-  const [timeOrder, setTimeOrder] = useState<TimeOrder>('newest')
-  const filtered = incidents.filter(incident =>
-    (severity === 'Todas' || incident.severity === severity) &&
-    (category === 'Todas' || incident.category === category) &&
-    (status === 'Todos' || (status === 'Ativos' ? !isIncidentClosed(incident.status) : incident.status === status)) &&
-    `${incident.title} ${incident.driver} ${incident.plate} ${incident.location} ${incident.id}`
-      .toLocaleLowerCase('pt-BR').includes(search.toLocaleLowerCase('pt-BR')),
-  ).sort((a, b) => {
-    const priorityDifference = severityPriority[a.severity] - severityPriority[b.severity]
-    if (priorityDifference !== 0) return priorityDifference
-    const difference = Date.parse(a.occurredAt) - Date.parse(b.occurredAt)
-    return timeOrder === 'oldest' ? difference : -difference
+  useEffect(() => {
+    const timeout = window.setTimeout(() => setFilters(current => ({ ...current, search: search.trim(), page: 1 })), 300)
+    return () => window.clearTimeout(timeout)
+  }, [search])
+  function change<K extends keyof typeof filters>(key: K, value: typeof filters[K]) {
+    setFilters(current => ({ ...current, [key]: value, page: 1 }))
+  }
+  const query = useIncidentList({
+    search: filters.search || undefined,
+    severity: enumValue(severityLabels, filters.severity),
+    category: enumValue(categoryLabels, filters.category),
+    status: filters.status === 'Ativos' ? 'ACTIVE' : filters.status === 'Todos' ? 'ALL' : enumValue(statusLabels, filters.status),
+    timeOrder: filters.timeOrder, page: filters.page, pageSize: 100,
   })
-  const hasFilters = Boolean(search || severity !== 'Todas' || category !== 'Todas' || status !== 'Ativos')
   function clearFilters() {
     setSearch('')
-    setSeverity('Todas')
-    setCategory('Todas')
-    setStatus('Ativos')
+    setFilters(current => ({ ...current, search: '', severity: 'Todas', category: 'Todas', status: 'Ativos', page: 1 }))
   }
-  return { incidents, filtered, search, setSearch, severity, setSeverity, category, setCategory, status, setStatus, timeOrder, setTimeOrder, hasFilters, clearFilters, createIncident }
+  return {
+    ...query, filtered: (query.data?.items ?? []).map(toIncident), total: query.data?.total ?? 0,
+    search, setSearch, severity: filters.severity, setSeverity: (value: string) => change('severity', value),
+    category: filters.category, setCategory: (value: string) => change('category', value),
+    status: filters.status, setStatus: (value: string) => change('status', value),
+    timeOrder: filters.timeOrder, setTimeOrder: (value: TimeOrder) => change('timeOrder', value),
+    page: filters.page, setPage: (page: number) => setFilters(current => ({ ...current, page })),
+    hasFilters: Boolean(search || filters.severity !== 'Todas' || filters.category !== 'Todas' || filters.status !== 'Ativos'),
+    clearFilters, searching: search.trim() !== filters.search,
+  }
 }

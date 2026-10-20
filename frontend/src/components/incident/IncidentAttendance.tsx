@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import type { Incident, IncidentStatus, Severity, UpdateIncidentInput } from '../../interfaces/Incident'
 import { incidentStatuses, isIncidentClosed } from '../../interfaces/Incident'
-import { useIncidentStore } from '../../hooks/useIncidentStore'
-import { analysts, currentAnalyst } from '../../service/mockAnalysts'
+import { useIncidentAttendance } from '../../hooks/useIncidentAttendance'
+import { useCurrentUser } from '../../hooks/useAuth'
+import { useAnalysts } from '../../hooks/useUsers'
+import { ApiError } from '../../service/api'
 import Button from '../ui/Button'
 import FormField from '../ui/FormField'
 import FormSelect from '../ui/FormSelect'
@@ -10,10 +12,11 @@ import IncidentReopen from './IncidentReopen'
 
 const statusOptions = incidentStatuses.map(value => ({ value, label: value }))
 const severityOptions = ['Alta', 'Média', 'Baixa'].map(value => ({ value, label: value }))
-const analystOptions = analysts.filter(analyst => analyst.id !== currentAnalyst.id).map(analyst => ({ value: analyst.id, label: analyst.name }))
 
 export default function IncidentAttendance({ incident }: { incident: Incident }) {
-  const { updateIncident } = useIncidentStore()
+  const { updateIncident, refreshIncident, isPending } = useIncidentAttendance()
+  const [refreshing, setRefreshing] = useState(false)
+  const { data: user } = useCurrentUser()
   const [snapshot, setSnapshot] = useState(incident)
   const [status, setStatus] = useState(incident.status)
   const [severity, setSeverity] = useState(incident.severity)
@@ -25,8 +28,9 @@ export default function IncidentAttendance({ incident }: { incident: Incident })
   const [conflict, setConflict] = useState(false)
   const [observationError, setObservationError] = useState('')
   const closed = isIncidentClosed(incident.status)
-  const canEdit = !closed && incident.analystId === currentAnalyst.id
-  const analyst = analysts.find(user => user.id === incident.analystId)
+  const canEdit = !closed && user?.role === 'ANALYST' && incident.analystId === user.id
+  const analystQuery = useAnalysts(transferring && canEdit)
+  const analystOptions = (analystQuery.data ?? []).filter(analyst => analyst.id !== user?.id).map(analyst => ({ value: analyst.id, label: analyst.name }))
   const changed = status !== snapshot.status || severity !== snapshot.severity || Boolean(observation.trim())
 
   function reset(updated: Incident) {
@@ -41,25 +45,39 @@ export default function IncidentAttendance({ incident }: { incident: Incident })
     setObservationError('')
   }
 
-  function commit(input: UpdateIncidentInput, success: string) {
+  async function commit(input: UpdateIncidentInput, success: string) {
+    if (isPending || refreshing || conflict) return
     setMessage('')
     setError('')
-    const result = updateIncident(incident.id, input)
-    if (!result.ok) {
-      setConflict(result.reason === 'conflict')
-      setError(result.reason === 'conflict'
-        ? 'Esta ocorrência foi alterada. Recarregue os dados antes de tentar novamente.'
-        : result.reason === 'forbidden' ? 'Somente o responsável pode alterar este atendimento.' : 'Não foi possível atualizar o atendimento. Confira os dados.')
-      return
+    try {
+      const updated = await updateIncident(incident.id, input)
+      reset(updated)
+      setMessage(success)
+    } catch (error) {
+      const isConflict = error instanceof ApiError && error.status === 409
+      setConflict(isConflict)
+      setError(isConflict ? 'Sua alteração não foi salva porque esta ocorrência foi atualizada por outro atendimento.'
+        : error instanceof ApiError ? error.message : 'Não foi possível atualizar o atendimento. Tente novamente.')
+      if (isConflict) {
+        setRefreshing(true)
+        try {
+          const latest = await refreshIncident(incident.id)
+          setSnapshot(latest)
+          setConflict(false)
+        } catch {
+          // Mantém o envio bloqueado se não foi possível obter a versão atual.
+        } finally {
+          setRefreshing(false)
+        }
+      }
     }
-    reset(result.incident)
-    setMessage(success)
   }
 
-  return <section className="border-t border-line pt-4" aria-labelledby="attendance-title">
+  return <section className="border-t border-line pt-4" aria-labelledby="attendance-title" aria-busy={isPending || refreshing}>
+    <fieldset disabled={isPending || refreshing} className="min-w-0">
     <h3 id="attendance-title" className="mb-4 text-lg font-bold text-ink">Atendimento</h3>
     <div className="mb-4 flex items-center justify-between gap-3 text-sm">
-      <div><span className="text-sm font-medium text-ink">Responsável</span><p className="mt-1 text-sm text-muted">{analyst?.name ?? 'Não atribuído'}</p></div>
+      <div><span className="text-sm font-medium text-ink">Responsável</span><p className="mt-1 text-sm text-muted">{incident.assigneeName ?? 'Não atribuído'}</p></div>
       {!incident.analystId && !closed && <button type="button" disabled={conflict} onClick={() => commit({ action: 'assume', version: snapshot.version ?? 1 }, 'Atendimento assumido com sucesso.')} className="rounded-md border border-line px-3 py-2 font-medium text-brand-dark hover:bg-brand-soft disabled:opacity-50">Assumir ocorrência</button>}
       {canEdit && <button type="button" disabled={changed || conflict} onClick={() => { setTransferring(!transferring); setTargetId(''); setMessage('') }} className="rounded-md border border-line px-3 py-2 font-medium text-brand-dark hover:bg-brand-soft disabled:cursor-not-allowed disabled:opacity-50">{transferring ? 'Cancelar transferência' : 'Transferir'}</button>}
     </div>
@@ -68,9 +86,11 @@ export default function IncidentAttendance({ incident }: { incident: Incident })
       if (targetId) commit({ action: 'transfer', version: snapshot.version ?? 1, analystId: targetId }, 'Atendimento transferido com sucesso.')
     }}>
       <FormField id="transfer-analyst" label="Novo responsável" showRequiredIndicator={false}>
+        {analystQuery.isPending && <p role="status" className="mb-2 text-sm text-muted">Carregando analistas…</p>}
+        {analystQuery.isError && <p role="alert" className="mb-2 text-sm text-red-700">Não foi possível carregar os analistas. <button type="button" onClick={() => void analystQuery.refetch()} className="underline">Tentar novamente</button></p>}
         <FormSelect id="transfer-analyst" variant="field" label="Novo responsável" ariaLabel="Novo responsável" value={targetId} options={analystOptions} onChange={setTargetId} placeholder="Selecione um analista" required />
       </FormField>
-      <div className="flex justify-end"><Button type="submit" disabled={!targetId || conflict} className="disabled:cursor-not-allowed disabled:opacity-50">Confirmar transferência</Button></div>
+      <div className="flex justify-end"><Button type="submit" disabled={!targetId || conflict || !analystQuery.isSuccess} className="disabled:cursor-not-allowed disabled:opacity-50">Confirmar transferência</Button></div>
     </form> : <form noValidate onSubmit={event => {
       event.preventDefault()
       setObservationError('')
@@ -89,7 +109,10 @@ export default function IncidentAttendance({ incident }: { incident: Incident })
       </FormField>
       <div className="flex justify-end"><Button type="submit" disabled={!changed || conflict} className="disabled:cursor-not-allowed disabled:opacity-50">Salvar atualização</Button></div>
     </form> : incident.analystId ? <p className="text-sm text-muted">Somente o responsável pode alterar este atendimento.</p> : null}
-    {error && <div role="alert" className="mt-3 rounded-md border border-red-200 px-3 py-2 text-sm text-red-700">{error}{conflict && <button type="button" onClick={() => { reset(incident); setMessage('Dados atualizados. Revise antes de salvar novamente.') }} className="mt-2 block font-semibold underline">Recarregar dados e descartar edição</button>}</div>}
+    {error && <div role="alert" className="mt-3 rounded-md border border-red-200 px-3 py-2 text-sm text-red-700">{error}</div>}
     {message && <p role="status" className="mt-3 text-sm text-green-800">{message}</p>}
+    {isPending && <p role="status" className="mt-3 text-sm text-muted">Salvando atendimento…</p>}
+    {refreshing && <p role="status" className="mt-3 text-sm text-muted">Atualizando dados…</p>}
+    </fieldset>
   </section>
 }

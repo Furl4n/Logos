@@ -171,15 +171,15 @@ responde `409 Conflict` caso exista divergência. Nenhuma atualização deve ser
 - Links enviados exclusivamente pela plataforma de recrutamento até o prazo do
   e-mail de confirmação.
 
-## 8. Decisões consolidadas e integração pendente
+## 8. Decisões consolidadas e estado atual
 
 - Uma página `/incidentes`, adaptada ao perfil autenticado, com cards agrupados
   por criticidade e filtros de busca, criticidade, categoria, status e ordem temporal.
 - Registro com título, descrição, motorista, caminhão, localização, categoria,
   criticidade, data da ocorrência e código opcional de rota/entrega.
 - UUID identifica o recurso; código público `INC-...` identifica o chamado visualmente.
-- Contratos e validações estão em `api-contract.md`. O backend, a paginação,
-  a sessão real e os estados de rede ainda serão implementados.
+- Contratos e validações estão em `api-contract.md`. Backend e frontend já usam
+  a API para autenticação, paginação, estados de rede, registro e atendimento.
 - A migration precisa contemplar o código público e o evento de criação no
   histórico, preservando a autoria sem campo extra no incidente.
 

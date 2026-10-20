@@ -29,8 +29,7 @@ o tratamento de urgência.
 - Campos: e-mail e senha.
 - Após sucesso, ambos seguem para `/incidentes`, com visão adaptada ao perfil.
 - Exibe erro de credenciais sem revelar qual campo está incorreto.
-- Token expirado limpa a sessão e exige novo login. Sair remove o token local.
-- No protótipo, links e seletor temporário permitem testar os perfis sem autenticação.
+- Sessão expirada exige novo login. Sair invalida a sessão no navegador e no backend.
 
 ### 2. Incidentes — visão do motorista
 
@@ -65,7 +64,7 @@ incidente na lista correspondente.
 - Botão para limpar filtros ativos.
 - Botão para registrar incidente em nome de um motorista.
 - Clique no card abre um painel lateral no desktop ou uma tela/modal no mobile.
-- Paginação inicial de até 100; permite carregar mais resultados e reinicia ao alterar filtros ou ordem.
+- Paginação de até 100 por página; reinicia na primeira página ao alterar filtros ou ordem.
 
 ### 5. Detalhe do incidente
 
@@ -80,6 +79,8 @@ incidente na lista correspondente.
 - Encerrados permitem somente consulta e a ação Reabrir ocorrência: qualquer
   analista informa uma justificativa, assume a responsabilidade e retorna a Aberto.
 - As ações usam a versão atual; mudanças de criticidade reposicionam o card na fila.
+- Se há conflito de versão, informa que a alteração não foi salva, atualiza os
+  dados atuais e permite uma nova tentativa manual sem reenviar o formulário.
 - Para motorista, é somente leitura.
 
 ## Conteúdo do card de incidente
@@ -112,8 +113,8 @@ público na apresentação. Títulos longos são truncados com reticências.
 - **Atualizando status:** ação daquele incidente fica temporariamente
   desabilitada e exibe feedback de processamento.
 - **Conflito:** ao receber `409 Conflict`, a interface informa que outro
-  analista atualizou o incidente e oferece carregar a versão atual antes de
-  uma nova tentativa.
+  analista atualizou o incidente, atualiza a versão atual e permite uma nova
+  tentativa manual, sem salvar nem reenviar automaticamente a tentativa anterior.
 
 ## Responsividade
 

@@ -89,8 +89,9 @@ O comando de geração acima produz uma chave adequada. A chave não é versiona
 trocar seu valor invalida os tokens anteriores.
 
 - `POST /api/v1/auth/login`: recebe JSON com `email` e `password`; retorna o
-  usuário público, `accessToken`, `tokenType: "Bearer"` e `expiresIn: 3600`.
-- `GET /api/v1/auth/me`: exige `Authorization: Bearer <accessToken>` e retorna
+  usuário público e `expiresIn: 3600`; define o cookie de sessão HttpOnly.
+- `POST /api/v1/auth/logout`: remove o cookie e retorna 204.
+- `GET /api/v1/auth/me`: usa o cookie de sessão e retorna
   o usuário atual consultado no banco, incluindo o perfil atualizado.
 
 Senhas são armazenadas com hash Argon2. Tokens JWT usam HS256 e expiram em uma
@@ -107,11 +108,17 @@ python -m app.create_user --name "Motorista" --email motorista@example.com --rol
 
 A senha é solicitada sem aparecer na tela e deve ter pelo menos oito caracteres.
 O comando confirma a senha e rejeita e-mails duplicados; não altera usuários existentes.
-Use o botão Authorize no Swagger para informar o token retornado pelo login.
+Login e logout exigem `X-CSRF-Protection: 1`, assim como alterações autenticadas
+por cookie. O navegador envia cookies com `credentials: include`.
+Configure `FRONTEND_ORIGINS` como uma lista JSON de origens permitidas, sem curingas.
+Em HTTP local, acrescente `COOKIE_SECURE=false` ao `.env`; o padrão é true para
+produção HTTPS. Frontend e API devem estar no mesmo site (por exemplo,
+`app.exemplo.com` e `api.exemplo.com`) para o cookie SameSite=Lax funcionar.
+Bearer continua aceito para clientes externos, mas o login não expõe JWT em JSON.
 
 ## Listagem de incidentes
 
-`GET /api/v1/incidents` exige Bearer token. Analistas consultam toda a operação;
+`GET /api/v1/incidents` exige autenticação. Analistas consultam toda a operação;
 motoristas recebem apenas os próprios incidentes, com escopo imposto no servidor.
 
 Filtros: `search`, `severity`, `category`, `status`, `timeOrder`, `page` e `pageSize`.

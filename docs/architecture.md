@@ -105,5 +105,7 @@ A pasta `database/` não conterá o Compose: ela guarda apenas migrations, seeds
    é confirmada antes de enviar a resposta HTTP. Atendimento implementado com
    assunção, transferência, atualização, observações e reabertura, usando versão
    e histórico atômico. Consultas auxiliares de motoristas e analistas disponíveis.
-5. Integrar o frontend React existente ao contrato da API, removendo os mocks e o seletor temporário de perfil.
-6. Expandir testes e containerização das aplicações; configurar deploy.
+5. Frontend integrado à autenticação, listagem, filtros, registro e atendimento;
+   dados locais e seletor temporário de perfil removidos.
+6. Validar os fluxos completos no navegador; depois, expandir a containerização
+   das aplicações e configurar o deploy.

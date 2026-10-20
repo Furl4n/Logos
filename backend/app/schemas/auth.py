@@ -1,4 +1,4 @@
-from typing import Annotated, Literal
+from typing import Annotated
 from uuid import UUID
 
 from pydantic import BaseModel, BeforeValidator, ConfigDict, EmailStr, Field
@@ -32,7 +32,5 @@ class UserResponse(BaseModel):
 
 
 class LoginResponse(BaseModel):
-    accessToken: str
-    tokenType: Literal["Bearer"] = "Bearer"
     expiresIn: int = 3600
     user: UserResponse
