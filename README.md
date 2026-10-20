@@ -14,4 +14,10 @@ O produto conecta motoristas, que registram e acompanham os próprios incidentes
 
 ## Estado atual
 
-O escopo, as entidades e a primeira migration do PostgreSQL estão definidos. Backend, frontend, Docker e deploy ainda serão implementados nas próximas etapas.
+O frontend possui as telas e os fluxos locais com dados de exemplo. O backend
+tem a estrutura inicial em Python/FastAPI e configuração de ambiente;
+conexão com PostgreSQL, autenticação e integração com o frontend são as próximas etapas.
+Docker e deploy ainda serão implementados.
+
+Veja como executar cada aplicação em [frontend](frontend/README.md) e
+[backend](backend/README.md).

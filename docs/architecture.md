@@ -8,7 +8,7 @@ Manter frontend, backend, banco de dados e documentação organizados em um mono
 
 ```text
 ps-autoU/
-├── backend/                 # API Python; será criado na etapa de backend
+├── backend/                 # API Python + FastAPI
 │   ├── app/
 │   │   ├── api/             # rotas HTTP
 │   │   ├── core/            # configurações, autenticação e dependências
@@ -37,7 +37,7 @@ ps-autoU/
 │   ├── api-contract.md
 │   └── user-flows.md
 ├── README.md                # ponto de entrada do repositório
-├── .gitignore               # será adicionado na configuração inicial
+├── .gitignore               # ambientes locais e arquivos gerados
 └── docker-compose.yml       # será adicionado na etapa de containerização
 ```
 
@@ -80,7 +80,7 @@ A pasta `database/` não conterá o Compose: ela guarda apenas migrations, seeds
 
 ## Próximas etapas
 
-1. Criar a estrutura inicial do backend e configurar o ambiente Python.
+1. Estrutura inicial e ambiente Python configurados com FastAPI, Uvicorn e Pydantic Settings.
 2. Configurar conexão com PostgreSQL e execução das migrations.
 3. Implementar autenticação e autorização por papel.
 4. Implementar incidentes, histórico e atualização concorrente.
