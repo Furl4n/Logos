@@ -38,14 +38,21 @@ apresentação. Os cards e os detalhes ficam nos componentes do domínio.
 `routes/AppRouter.tsx` conecta o roteador à aplicação. `AppLayout` renderiza a
 página ativa por meio de `Outlet`.
 
-- `/login`: tela de login e links de demonstração dos dois perfis.
-- `/incidentes`: página única de incidentes, adaptada ao perfil de demonstração.
+- `/login`: autenticação real com e-mail e senha; contas autenticadas seguem para a fila.
+- `/incidentes`: página protegida, adaptada ao cargo retornado pela API.
 - `/` e caminhos desconhecidos: redirecionam para `/login`.
 
 A navegação interna usa `Link` e `NavLink`. No deploy, o servidor deverá servir
 `index.html` para as rotas da aplicação, permitindo abrir `/incidentes` diretamente.
 O `IncidentProvider` mantém os incidentes locais compartilhados entre a fila e
 o painel de detalhes.
+
+`AuthRoute` consulta `/auth/me` ao abrir a aplicação, apresenta carregamento ou
+erro de conexão com opção de tentar novamente e exige sessão para acessar a fila.
+O formulário usa `useLogin`; a barra lateral mostra o usuário real e permite sair.
+Ainda não há cadastro público: crie uma conta com `python -m app.create_user` no
+backend. Inicie a API e configure a origem do Vite em `FRONTEND_ORIGINS`.
+Os incidentes e as ações de atendimento continuam locais até a próxima integração.
 
 ## Executar
 

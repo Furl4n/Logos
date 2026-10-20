@@ -8,10 +8,10 @@ import IncidentToolbar from './IncidentToolbar'
 import IncidentList from './IncidentList'
 import IncidentHeader from './IncidentHeader'
 import { currentDriver } from '../../service/mockDrivers'
-import { useDemoProfile } from '../../hooks/useDemoProfile'
+import { useProfile } from '../../hooks/useProfile'
 
 export default function Incidentes() {
-  const { profile } = useDemoProfile()
+  const { profile } = useProfile()
   return <IncidentPage key={profile} driverView={profile === 'driver'} />
 }
 

@@ -4,13 +4,13 @@ import type { CreateIncidentInput, Incident, UpdateIncidentInput } from '../inte
 import type { IncidentUpdateResult } from './IncidentContext'
 import { incidents as initialIncidents } from '../service/mockIncidents'
 import { currentDriver, drivers } from '../service/mockDrivers'
-import { useDemoProfile } from '../hooks/useDemoProfile'
+import { useProfile } from '../hooks/useProfile'
 import { IncidentContext } from './IncidentContext'
 import { isIncidentClosed } from '../interfaces/Incident'
 import { analysts, currentAnalyst } from '../service/mockAnalysts'
 
 export default function IncidentProvider({ children }: { children: ReactNode }) {
-  const { profile } = useDemoProfile()
+  const { profile } = useProfile()
   const [incidents, setIncidents] = useState(initialIncidents)
   const currentIncidents = useRef(initialIncidents)
   const nextCode = useRef(Math.max(...initialIncidents.map(incident => Number(incident.id.slice(4)))) + 1)

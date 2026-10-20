@@ -1,23 +1,34 @@
 import { useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import Button from '../../components/ui/Button'
 import FormField from '../../components/ui/FormField'
-import { useDemoProfile } from '../../hooks/useDemoProfile'
+import { useLogin } from '../../hooks/useAuth'
+import { ApiError } from '../../service/api'
 
 const inputClassName = 'w-full rounded-md border border-line bg-white px-3 py-3 text-base text-ink placeholder:text-muted'
 
 export default function LoginForm() {
-  const { setProfile } = useDemoProfile()
+  const login = useLogin()
+  const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
   const [message, setMessage] = useState('')
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setMessage('A autenticação ainda não está disponível. Você pode acessar a demonstração pelo link abaixo.')
+    if (login.isPending) return
+    const fields = new FormData(event.currentTarget)
+    setMessage('')
+    try {
+      await login.mutateAsync({ email: String(fields.get('email')).trim(), password: String(fields.get('password')) })
+      navigate('/incidentes', { replace: true })
+    } catch (error) {
+      setMessage(error instanceof ApiError ? error.message : 'Não foi possível conectar ao servidor. Tente novamente.')
+    }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} aria-busy={login.isPending} className="space-y-5">
+      <fieldset disabled={login.isPending} className="space-y-5 disabled:opacity-70">
       <FormField id="login-email" label="E-mail" showRequiredIndicator={false}>
         <input id="login-email" name="email" type="email" autoComplete="username" placeholder="seu@email.com" required className={inputClassName} />
       </FormField>
@@ -29,15 +40,9 @@ export default function LoginForm() {
           </button>
         </div>
       </FormField>
-      {message && <p role="status" className="rounded-md border border-line bg-canvas px-3 py-3 text-sm text-ink">{message}</p>}
-      <Button type="submit" className="w-full py-3">Entrar</Button>
-      <div className="border-t border-line pt-5 text-center">
-        <p className="mb-3 text-sm text-muted">Acessar demonstração</p>
-        <div className="flex justify-center gap-6">
-          <Link to="/incidentes" onClick={() => setProfile('analyst')} className="text-sm font-medium text-brand-dark underline-offset-4 hover:underline">Analista</Link>
-          <Link to="/incidentes" onClick={() => setProfile('driver')} className="text-sm font-medium text-brand-dark underline-offset-4 hover:underline">Motorista</Link>
-        </div>
-      </div>
+      {message && <p role="alert" className="rounded-md border border-red-200 bg-red-50 px-3 py-3 text-sm text-red-800">{message}</p>}
+      <Button type="submit" disabled={login.isPending} className="w-full py-3 disabled:cursor-wait">{login.isPending ? 'Entrando…' : 'Entrar'}</Button>
+      </fieldset>
     </form>
   )
 }
