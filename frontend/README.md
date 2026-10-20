@@ -79,6 +79,17 @@ futura e limites de título (160), caminhão (10) e rota opcional (50 caracteres
 
 ## Atendimento
 
+A página `/quadro`, exclusiva de analistas, mostra incidentes ativos nas colunas
+Sem responsável, Meus atendimentos e Com outros analistas. Cada coluna consulta
+a API com seu filtro de atribuição, ordena por criticidade e horário e carrega
+20 registros por vez conforme a rolagem, com contagem total e sem controles de
+página. Os cards reutilizam o estilo da lista,
+exibem o rótulo de criticidade e abrem os mesmos detalhes. Não há arrastar cards.
+Em telas menores que 1100 px, um seletor mostra uma lista por vez (Sem responsável,
+Meus ou Outros), preservando a rolagem e os registros carregados de cada coluna.
+Em telas maiores, as três colunas aparecem lado a lado. A página ocupa a altura
+da tela; somente as listas têm rolagem vertical.
+
 Detalhes, responsável e histórico são consultados na API. Analistas podem assumir
 ocorrências não atribuídas; apenas o responsável edita e transfere atendimentos
 ativos. Fechado e Inconclusivo exigem observação. Qualquer analista pode reabrir

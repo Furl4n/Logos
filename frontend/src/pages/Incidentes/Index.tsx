@@ -3,15 +3,14 @@ import type { CreateIncidentInput, Incident } from '../../interfaces/Incident'
 import { useIncidents } from '../../hooks/useIncidents'
 import Icon from '../../components/ui/Icons'
 import IncidentFormModal from '../../components/incident/IncidentFormModal'
-import IncidentDetailsModal from '../../components/incident/IncidentDetailsModal'
+import IncidentDetailsDialog from '../../components/incident/IncidentDetailsDialog'
 import IncidentToolbar from './IncidentToolbar'
 import IncidentList from './IncidentList'
 import IncidentHeader from './IncidentHeader'
 import { useProfile } from '../../hooks/useProfile'
 import { useCurrentUser } from '../../hooks/useAuth'
-import { useCreateIncident, useIncidentDetails } from '../../hooks/useIncidentApi'
-import { categoryLabels, enumValue, severityLabels, toIncidentDetail } from '../../service/incidentMapper'
-import Modal from '../../components/ui/Modal'
+import { useCreateIncident } from '../../hooks/useIncidentApi'
+import { categoryLabels, enumValue, severityLabels } from '../../service/incidentMapper'
 import { ApiError } from '../../service/api'
 
 export default function Incidentes() {
@@ -24,8 +23,6 @@ function IncidentPage({ driverView }: { driverView: boolean }) {
   const { data: user } = useCurrentUser()
   const create = useCreateIncident()
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const detail = useIncidentDetails(selectedId)
-  const selected = detail.data ? toIncidentDetail(detail.data) : null
   const [formOpen, setFormOpen] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
   async function handleSave(input: CreateIncidentInput) {
@@ -73,9 +70,7 @@ function IncidentPage({ driverView }: { driverView: boolean }) {
         </nav>}
       </div>
     </section>
-    {selectedId && (selected ? <IncidentDetailsModal incident={selected} readOnly={driverView} onClose={() => setSelectedId(null)} /> : <Modal title="Detalhes da ocorrência" sidePanel onClose={() => setSelectedId(null)}>
-      {detail.isError ? <div role="alert"><p className="text-sm text-muted">Não foi possível carregar os detalhes.</p><button type="button" onClick={() => void detail.refetch()} className="mt-3 text-sm text-brand-dark underline">Tentar novamente</button></div> : <p role="status" className="text-sm text-muted">Carregando ocorrência…</p>}
-    </Modal>)}
+    {selectedId && <IncidentDetailsDialog id={selectedId} readOnly={driverView} onClose={() => setSelectedId(null)} />}
     {formOpen && <IncidentFormModal driverId={driverView ? user?.id : undefined} onSave={handleSave} onClose={() => setFormOpen(false)} />}
   </>
 }

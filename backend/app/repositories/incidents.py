@@ -97,6 +97,9 @@ def list_incidents(
         parameters.append(user.id)
     elif filters.assignment == "UNASSIGNED":
         conditions.append(sql.SQL("i.analyst_id IS NULL"))
+    elif filters.assignment == "OTHERS":
+        conditions.append(sql.SQL("i.analyst_id <> %s"))
+        parameters.append(user.id)
     if filters.category is not None:
         conditions.append(sql.SQL("i.category = %s"))
         parameters.append(filters.category.value)

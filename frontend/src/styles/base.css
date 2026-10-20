@@ -17,6 +17,16 @@
   to { transform: translateY(0); }
 }
 
+.board-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #b8c1ca transparent;
+}
+
+.board-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+.board-scroll::-webkit-scrollbar-track { background: transparent; }
+.board-scroll::-webkit-scrollbar-thumb { background: #b8c1ca; border-radius: 999px; }
+.board-scroll::-webkit-scrollbar-thumb:hover { background: #8794a1; }
+
 @media (width < 40rem) and (prefers-reduced-motion: no-preference) {
   .mobile-sheet { animation: sheet-enter 220ms ease-out; }
 }

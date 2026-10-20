@@ -1,16 +1,29 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { AssignIncidentRequest, CreateIncidentRequest, IncidentDetail, IncidentFilters, IncidentPage, ReopenIncidentRequest, UpdateIncidentRequest } from '../interfaces/Api'
 import { api, ApiError } from '../service/api'
 
-export function useIncidentList(filters: IncidentFilters = {}, enabled = true) {
+function incidentListPath(filters: IncidentFilters) {
   const params = new URLSearchParams()
   Object.entries(filters).forEach(([key, value]) => {
     if (value !== undefined && value !== '') params.set(key, String(value))
   })
+  return `/incidents?${params}`
+}
+
+export function useIncidentList(filters: IncidentFilters = {}, enabled = true) {
   return useQuery({
     queryKey: ['incidents', 'list', filters],
-    queryFn: ({ signal }) => api<IncidentPage>(`/incidents?${params}`, { signal }),
+    queryFn: ({ signal }) => api<IncidentPage>(incidentListPath(filters), { signal }),
     enabled,
+  })
+}
+
+export function useInfiniteIncidentList(filters: Omit<IncidentFilters, 'page'>) {
+  return useInfiniteQuery({
+    queryKey: ['incidents', 'list', 'infinite', filters],
+    initialPageParam: 1,
+    queryFn: ({ signal, pageParam }) => api<IncidentPage>(incidentListPath({ ...filters, page: pageParam }), { signal }),
+    getNextPageParam: last => last.page * last.pageSize < last.total ? last.page + 1 : undefined,
   })
 }
 

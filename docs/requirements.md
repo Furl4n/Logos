@@ -173,6 +173,11 @@ responde `409 Conflict` caso exista divergência. Nenhuma atualização deve ser
 
 ## 8. Decisões consolidadas e estado atual
 
+- Página complementar `/quadro`, exclusiva de analistas, para visualizar incidentes
+  ativos por atribuição: Sem responsável, Meus atendimentos e Com outros analistas.
+  Cada coluna tem contagem, carregamento ao rolar e prioridade por criticidade; os cards abrem
+  os detalhes existentes, sem interação de arrastar.
+
 - Uma página `/incidentes`, adaptada ao perfil autenticado, com cards agrupados
   por criticidade, busca e ordem temporal visíveis. Criticidade, categoria e status
   ficam no painel de filtros; analistas também podem selecionar Todos, Meus

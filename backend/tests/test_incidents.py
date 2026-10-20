@@ -96,12 +96,16 @@ class IncidentListTests(IncidentTestCase):
         unassigned = self.get(assignment="UNASSIGNED", pageSize=1).json()
         self.assertEqual(unassigned["total"], 2)
         self.assertEqual(len(unassigned["items"]), 1)
+        others = self.get(assignment="OTHERS").json()
+        self.assertEqual(others["total"], 1)
+        self.assertEqual(others["items"][0]["id"], self.medium["id"])
+        self.assertEqual(self.get(assignment="OTHERS", severity="HIGH").json()["total"], 0)
         self.assertEqual(self.get(assignment="MINE", category="ROAD_BLOCK").json()["total"], 0)
         self.assertEqual(self.get(assignment="invalid").status_code, 422)
 
     def test_driver_cannot_use_analyst_assignment_filters(self):
         self.headers = {"Authorization": f"Bearer {create_access_token(self.driver.id)}"}
-        for assignment in ("MINE", "UNASSIGNED"):
+        for assignment in ("MINE", "UNASSIGNED", "OTHERS"):
             self.assertEqual(self.get(assignment=assignment).status_code, 403)
         self.assertEqual(self.get(assignment="ALL").json()["total"], 3)
 

@@ -136,7 +136,7 @@ Ambos podem filtrar, sempre dentro do escopo autorizado pelo servidor.
 | `timeOrder` | `newest` ou `oldest`, por `occurredAt` | `newest` |
 | `page` | Inteiro >= 1 | `1` |
 | `pageSize` | Inteiro de 1 a 100 | `100` |
-| `assignment` | `ALL`, `MINE` ou `UNASSIGNED`; os dois últimos são exclusivos de analistas | `ALL` |
+| `assignment` | `ALL`, `MINE`, `UNASSIGNED` ou `OTHERS`; os três últimos são exclusivos de analistas. `OTHERS` inclui somente casos atribuídos a outros analistas | `ALL` |
 
 Filtros combinam com AND. ACTIVE significa OPEN ou UNDER_INVESTIGATION.
 Não há multisseleção nem valores separados por vírgula: o front não os usa.

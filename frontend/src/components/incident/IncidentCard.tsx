@@ -8,7 +8,7 @@ const severityStyles = {
   Baixa: { border: 'border-l-[#75a39a]', badge: 'bg-[#edf5f2] text-[#285044]' },
 }
 
-export default function IncidentCard({ incident, onSelect }: { incident: Incident; onSelect: (incident: Incident) => void }) {
+export default function IncidentCard({ incident, onSelect, showPriority = false }: { incident: Incident; onSelect: (incident: Incident) => void; showPriority?: boolean }) {
   const severity = severityStyles[incident.severity]
   const urgent = incident.severity === 'Alta' && !isIncidentClosed(incident.status)
   const status = incident.status === 'Em investigação'
@@ -32,7 +32,7 @@ export default function IncidentCard({ incident, onSelect }: { incident: Inciden
           {incident.title}
         </h4>
         <div className="col-span-2 row-start-2 flex min-w-0 flex-wrap items-center gap-2 @3xl:shrink-0 @3xl:flex-nowrap">
-        {!urgent && <span className={`inline-flex shrink-0 items-center gap-1.5 rounded px-2 py-0.5 text-xs font-medium ${severity.badge}`}>
+        {(!urgent || showPriority) && <span className={`inline-flex shrink-0 items-center gap-1.5 rounded px-2 py-0.5 text-xs font-medium ${severity.badge}`}>
             <span className="size-1 rounded-full bg-current" />
             {incident.severity}
         </span>}
