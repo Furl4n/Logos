@@ -29,13 +29,13 @@ export default function IncidentCard({ incident, onSelect }: { incident: Inciden
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1.5 sm:flex-nowrap">
-        <h4 title={incident.title} className={`min-w-0 max-w-full truncate text-base leading-snug ${urgent ? 'font-semibold text-red-950' : 'font-medium'}`}>
+        <h4 title={incident.title} className="min-w-0 max-w-full truncate text-base leading-snug font-medium text-ink">
           {incident.title}
         </h4>
-        <span className={`inline-flex shrink-0 items-center gap-1.5 rounded px-2 py-0.5 text-xs font-medium ${urgent ? 'bg-red-700 text-white' : severity.badge}`}>
-            {urgent ? <Icon name="alert" size={13} /> : <span className="size-1 rounded-full bg-current" />}
+        {!urgent && <span className={`inline-flex shrink-0 items-center gap-1.5 rounded px-2 py-0.5 text-xs font-medium ${severity.badge}`}>
+            <span className="size-1 rounded-full bg-current" />
             {incident.severity}
-        </span>
+        </span>}
         <span className={`shrink-0 rounded border px-2 py-0.5 text-xs ${status}`}>{incident.status}</span>
         <span className="shrink-0 text-xs tracking-wide text-muted">{incident.id}</span>
         </div>
