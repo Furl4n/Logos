@@ -28,7 +28,6 @@ src/
 │   ├── layout/       # sidebar, menu da conta e estrutura compartilhada
 │   ├── ui/           # campos, seleção, calendário, botões e modais
 │   └── incident/     # cards, formulário e detalhes
-├── context/          # protótipo local antigo, fora da aplicação atual
 ├── hooks/            # autenticação, consultas, mutações e filtros
 ├── interfaces/       # contratos da API e tipos de apresentação
 ├── pages/
@@ -71,13 +70,19 @@ futura e limites de título (160), caminhão (10) e rota opcional (50 caracteres
 
 ## Atendimento
 
-Detalhes, responsável e histórico são consultados na API. O painel permanece
-somente para consulta enquanto as ações de assumir, transferir, atualizar e
-reabrir não forem conectadas. Seus hooks já estão em `useIncidentApi.ts`;
-conflitos HTTP 409 atualizam o cache com `currentIncident` e retornam erro à tela.
+Detalhes, responsável e histórico são consultados na API. Analistas podem assumir
+ocorrências não atribuídas; apenas o responsável edita e transfere atendimentos
+ativos. Fechado e Inconclusivo exigem observação. Qualquer analista pode reabrir
+uma ocorrência encerrada com justificativa, assumindo sua responsabilidade.
+Motoristas acessam somente a consulta. As regras também são impostas no backend.
+
+`useIncidentAttendance` adapta as ações da interface aos hooks da API.
+Requisições enviam a versão lida; conflitos HTTP 409 atualizam o cache com
+`currentIncident`, preservam o rascunho e exigem recarregar antes de reenviar.
+Durante o envio, os campos são bloqueados. Sucessos atualizam a fila e o histórico.
+Transferências consultam analistas reais, excluindo o usuário atual.
 `ApiError` expõe status HTTP, código, erros de campo e ocorrência em conflito.
 
-Os arquivos `mock*`, o contexto local e os componentes antigos de atendimento
-permanecem como referência do protótipo; a aplicação não usa o `IncidentProvider`.
+O contexto local e os mocks antigos foram removidos após concluir a integração.
 Para popular o banco de desenvolvimento, consulte `app.seed_incidents` no backend.
 A responsividade será refinada em uma etapa posterior.

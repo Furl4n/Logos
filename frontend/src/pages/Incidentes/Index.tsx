@@ -72,7 +72,7 @@ function IncidentPage({ driverView }: { driverView: boolean }) {
         </nav>}
       </div>
     </section>
-    {selectedId && (selected ? <IncidentDetailsModal incident={selected} readOnly onClose={() => setSelectedId(null)} /> : <Modal title="Detalhes da ocorrência" sidePanel onClose={() => setSelectedId(null)}>
+    {selectedId && (selected ? <IncidentDetailsModal incident={selected} readOnly={driverView} onClose={() => setSelectedId(null)} /> : <Modal title="Detalhes da ocorrência" sidePanel onClose={() => setSelectedId(null)}>
       {detail.isError ? <div role="alert"><p className="text-sm text-muted">Não foi possível carregar os detalhes.</p><button type="button" onClick={() => void detail.refetch()} className="mt-3 text-sm text-brand-dark underline">Tentar novamente</button></div> : <p role="status" className="text-sm text-muted">Carregando ocorrência…</p>}
     </Modal>)}
     {formOpen && <IncidentFormModal driverId={driverView ? user?.id : undefined} onSave={handleSave} onClose={() => setFormOpen(false)} />}
