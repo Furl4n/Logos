@@ -64,9 +64,9 @@ os eventos anteriores. Os papéis e as permissões são validados na camada de a
 
 ## Concorrência
 
-Alterações de status usarão controle otimista por versão. A API receberá a versão que o analista leu e fará uma atualização atômica condicionada a ela. Quando o incidente já tiver sido alterado, a API responderá `409 Conflict`, sem sobrescrever a mudança existente.
+Todas as alterações de atendimento usarão controle otimista por versão, incluindo observações, criticidade, atribuição e reabertura. A API receberá a versão lida e fará uma atualização atômica condicionada a ela. Se houver divergência, responderá `409 Conflict`, sem sobrescrever a mudança existente.
 
-O histórico de status deverá ser inserido na mesma transação que a atualização do incidente.
+Os eventos de histórico serão inseridos na mesma transação da alteração, agrupados por versão na resposta da API. O contrato prevê código público e evento de criação com autor; esses dois pontos ainda precisam ser incorporados à migration inicial.
 
 ## Docker
 
@@ -84,5 +84,5 @@ A pasta `database/` não conterá o Compose: ela guarda apenas migrations, seeds
 2. Configurar conexão com PostgreSQL e execução das migrations.
 3. Implementar autenticação e autorização por papel.
 4. Implementar incidentes, histórico e atualização concorrente.
-5. Criar o frontend React a partir do contrato da API.
+5. Integrar o frontend React existente ao contrato da API, removendo os mocks e o seletor temporário de perfil.
 6. Adicionar Docker, testes, documentação de setup e deploy.
