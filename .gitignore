@@ -7,3 +7,6 @@ __pycache__/
 .env
 .env.*
 !.env.example
+
+# Metadados locais do deploy e do vercel dev
+.vercel/

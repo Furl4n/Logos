@@ -12,8 +12,9 @@ npm install
 npm run dev
 ```
 
-Configure `VITE_API_URL` conforme `.env.example` (padrão:
-`http://localhost:8000/api/v1`). Inicie o backend e configure a origem do Vite em
+Configure `VITE_API_URL` conforme `.env.example` (padrão: `/api/v1`, no mesmo
+domínio). O Vite encaminha `/api` ao backend local em `localhost:8000`.
+Inicie o backend e configure a origem do Vite em
 `FRONTEND_ORIGINS`. Para HTTP local, use `COOKIE_SECURE=false` no backend.
 Contas são criadas pelo comando `python -m app.create_user` no backend.
 
@@ -42,6 +43,8 @@ src/
 O tema fica em `@theme` de `styles/base.css`, com identidade laranja e branca.
 A fonte IBM Plex Sans vem do Google Fonts, com alternativa local.
 No deploy, configure fallback para `index.html` nas rotas do frontend.
+O `vercel.json` da raiz já inclui esse fallback dentro do serviço frontend;
+consulte [Deploy na Vercel](../docs/deploy.md).
 
 ## Tema
 

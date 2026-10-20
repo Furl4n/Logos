@@ -1,6 +1,6 @@
 import type { ApiErrorResponse } from '../interfaces/Api'
 
-const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1').replace(/\/$/, '')
+const baseUrl = (import.meta.env.VITE_API_URL || '/api/v1').replace(/\/$/, '')
 let expiryHandled = false
 
 export class ApiError extends Error {

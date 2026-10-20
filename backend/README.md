@@ -20,8 +20,8 @@ python -c 'import secrets; print(secrets.token_urlsafe(48))'
 python -m uvicorn app.main:app --reload
 ```
 
-A documentação interativa fica em <http://127.0.0.1:8000/docs> e o contrato
-OpenAPI em <http://127.0.0.1:8000/openapi.json>.
+A documentação interativa fica em <http://127.0.0.1:8000/api/docs> e o contrato
+OpenAPI em <http://127.0.0.1:8000/api/openapi.json>.
 
 Se a criação do ambiente falhar por falta de `ensurepip` no Ubuntu/Debian,
 instale o pacote `python3.14-venv` ou, se o pip do sistema já estiver disponível,
