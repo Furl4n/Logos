@@ -8,7 +8,7 @@ Manter frontend, backend, banco de dados e documentação organizados em um mono
 
 ```text
 ps-autoU/
-├── backend/                 # API Python; será criado na etapa de backend
+├── backend/                 # API Python + FastAPI
 │   ├── app/
 │   │   ├── api/             # rotas HTTP
 │   │   ├── core/            # configurações, autenticação e dependências
@@ -16,7 +16,8 @@ ps-autoU/
 │   │   ├── schemas/         # contratos e validação de dados
 │   │   ├── services/        # regras de negócio e concorrência
 │   │   ├── repositories/    # acesso ao banco
-│   │   └── main.py
+│   │   ├── main.py
+│   │   └── migrate.py       # execução das migrations SQL
 │   ├── tests/
 │   ├── requirements.txt
 │   └── .env.example
@@ -37,8 +38,8 @@ ps-autoU/
 │   ├── api-contract.md
 │   └── user-flows.md
 ├── README.md                # ponto de entrada do repositório
-├── .gitignore               # será adicionado na configuração inicial
-└── docker-compose.yml       # será adicionado na etapa de containerização
+├── .gitignore               # ambientes locais e arquivos gerados
+└── docker-compose.yml       # PostgreSQL local
 ```
 
 Diretórios ainda não criados não representam funcionalidades implementadas; são apenas a organização planejada para as próximas etapas.
@@ -57,6 +58,11 @@ O banco de dados escolhido é **PostgreSQL 14 ou superior**. A migration inicial
 A migration também define validações, chaves estrangeiras e triggers para `updated_at`.
 Índices adicionais ficam para uma etapa posterior.
 
+A migration `002_add_incident_code_and_creation_event.sql` adiciona código público
+único gerado por sequência e suporte ao evento CREATED de versão 1. A migration
+inicial já aplicada é preservada. Incidentes existentes recebem código, mas não
+ganham um autor de criação presumido.
+
 Uma atualização pode gerar vários eventos na mesma versão: por exemplo, encerramento
 gera STATUS e OBSERVATION; reabertura gera REOPEN com justificativa e ASSIGNEE se
 houver troca de responsável. A aplicação insere tudo na mesma transação e preserva
@@ -64,25 +70,40 @@ os eventos anteriores. Os papéis e as permissões são validados na camada de a
 
 ## Concorrência
 
-Todas as alterações de atendimento usarão controle otimista por versão, incluindo observações, criticidade, atribuição e reabertura. A API receberá a versão lida e fará uma atualização atômica condicionada a ela. Se houver divergência, responderá `409 Conflict`, sem sobrescrever a mudança existente.
+Todas as alterações de atendimento usam controle otimista por versão, incluindo
+observações, criticidade, atribuição e reabertura. A API recebe a versão lida e faz
+`UPDATE ... WHERE id = ... AND version = ...`, incrementando a versão uma única
+vez por operação. Se houver divergência, responde `409 Conflict` com o incidente
+atual, sem sobrescrever a mudança existente.
 
-Os eventos de histórico serão inseridos na mesma transação da alteração, agrupados por versão na resposta da API. O contrato prevê código público e evento de criação com autor; esses dois pontos ainda precisam ser incorporados à migration inicial.
+Os eventos de histórico são inseridos na mesma transação da alteração, agrupados
+por versão na resposta da API. O suporte ao código público e ao evento de criação
+com autor está na migration `002`.
 
 ## Docker
 
-Docker será configurado depois que backend e frontend existirem. O arquivo `docker-compose.yml` ficará na raiz, pois coordenará todos os serviços:
-
-- PostgreSQL;
-- API Python;
-- aplicação React, se o fluxo de desenvolvimento local exigir.
+O arquivo `docker-compose.yml` fica na raiz e atualmente executa o PostgreSQL 17
+local, com healthcheck, porta restrita ao localhost e volume persistente.
+Backend e frontend continuam executados localmente fora do Docker.
+Sua containerização poderá ser adicionada depois.
 
 A pasta `database/` não conterá o Compose: ela guarda apenas migrations, seeds e scripts específicos do banco.
 
 ## Próximas etapas
 
-1. Criar a estrutura inicial do backend e configurar o ambiente Python.
-2. Configurar conexão com PostgreSQL e execução das migrations.
-3. Implementar autenticação e autorização por papel.
-4. Implementar incidentes, histórico e atualização concorrente.
+1. Estrutura inicial e ambiente Python configurados com FastAPI, Uvicorn e Pydantic Settings.
+2. Conexão PostgreSQL configurada com Psycopg 3 e `DATABASE_URL`. O comando
+   `python -m app.migrate` aplica os arquivos SQL e registra checksums no banco,
+   em transação e com bloqueio contra execuções simultâneas.
+3. Login e consulta do usuário autenticado implementados com JWT de uma hora,
+   hash Argon2 e dependências de autenticação/autorização por papel. Usuários
+   são criados por comando administrativo, sem cadastro público.
+4. Listagem implementada com filtros, paginação e escopo por perfil. Ordenação
+   por criticidade, horário e UUID, com total e página na mesma instrução SQL.
+   Criação grava incidente e CREATED atomicamente. Detalhes incluem histórico
+   agrupado por versão, com o mesmo escopo por perfil. A transação da requisição
+   é confirmada antes de enviar a resposta HTTP. Atendimento implementado com
+   assunção, transferência, atualização, observações e reabertura, usando versão
+   e histórico atômico. Consultas auxiliares de motoristas e analistas disponíveis.
 5. Integrar o frontend React existente ao contrato da API, removendo os mocks e o seletor temporário de perfil.
-6. Adicionar Docker, testes, documentação de setup e deploy.
+6. Expandir testes e containerização das aplicações; configurar deploy.
