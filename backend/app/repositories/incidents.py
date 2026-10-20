@@ -1,7 +1,54 @@
+from uuid import UUID
+
 from psycopg import Connection, sql
 
 from app.models.user import User, UserRole
-from app.schemas.incidents import IncidentFilters
+from app.schemas.incidents import CreateIncidentRequest, IncidentFilters
+
+
+def insert_incident(connection: Connection, data: CreateIncidentRequest, driver_id: UUID) -> UUID:
+    return connection.execute(
+        """INSERT INTO incidents (
+            title, description, category, severity, driver_id,
+            truck_plate, location, occurred_at, route_code
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id""",
+        (data.title, data.description, data.category.value, data.severity.value,
+         driver_id, data.truckPlate, data.location, data.occurredAt, data.routeCode),
+    ).fetchone()["id"]
+
+
+def insert_creation_event(connection: Connection, incident_id: UUID, author_id: UUID) -> None:
+    connection.execute(
+        """INSERT INTO incident_history (
+            incident_id, change_type, changed_by_user_id, incident_version, created_at
+        ) SELECT id, 'CREATED', %s, 1, reported_at FROM incidents WHERE id = %s""",
+        (author_id, incident_id),
+    )
+
+
+def find_incident(connection: Connection, incident_id: UUID, user: User) -> dict | None:
+    # Incidente e eventos são consultados no mesmo snapshot.
+    return connection.execute(
+        """SELECT i.*, d.name AS driver_name, a.name AS analyst_name,
+            COALESCE((
+                SELECT jsonb_agg(to_jsonb(event) ORDER BY event.incident_version DESC, event.id)
+                FROM (
+                    SELECT h.*, author.name AS author_name,
+                           previous.name AS previous_analyst_name,
+                           next_analyst.name AS new_analyst_name
+                    FROM incident_history h
+                    JOIN users author ON author.id = h.changed_by_user_id
+                    LEFT JOIN users previous ON previous.id = h.previous_analyst_id
+                    LEFT JOIN users next_analyst ON next_analyst.id = h.new_analyst_id
+                    WHERE h.incident_id = i.id
+                ) event
+            ), '[]'::jsonb) AS history_events
+        FROM incidents i
+        JOIN users d ON d.id = i.driver_id
+        LEFT JOIN users a ON a.id = i.analyst_id
+        WHERE i.id = %s AND (%s OR i.driver_id = %s)""",
+        (incident_id, user.role == UserRole.ANALYST, user.id),
+    ).fetchone()
 
 
 def list_incidents(

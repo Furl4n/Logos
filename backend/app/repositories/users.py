@@ -25,6 +25,13 @@ def find_by_id(connection: Connection, user_id: UUID) -> User | None:
     ).fetchone())
 
 
+def list_by_role(connection: Connection, role: UserRole) -> list[dict]:
+    return connection.execute(
+        "SELECT id, name FROM users WHERE role = %s ORDER BY name, id",
+        (role.value,),
+    ).fetchall()
+
+
 def create_user(
     connection: Connection, name: str, email: str, role: UserRole, password_hash: str
 ) -> User:

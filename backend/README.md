@@ -140,6 +140,45 @@ Pode ajustar a quantidade com `--count`. A execução é explícita e não acont
 ao iniciar a aplicação; repeti-la para o mesmo motorista não duplica os exemplos.
 Os títulos têm o prefixo `[Exemplo local]`.
 
+## Criação, detalhes e seleção de motorista
+
+- `GET /api/v1/users/drivers`: somente analistas; lista motoristas como `{ id, name }`,
+  ordenados por nome e UUID, para preencher o formulário.
+- `POST /api/v1/incidents`: registra a ocorrência e retorna `201` com o incidente
+  completo e cabeçalho `Location`. Motorista omite `driverId`; analista deve
+  informar o UUID de um motorista existente. Ambos podem escolher a criticidade.
+- `GET /api/v1/incidents/{incidentId}`: retorna os detalhes e o histórico;
+  motorista consulta apenas ocorrência própria e analista consulta qualquer uma.
+  Ocorrência alheia ao motorista recebe o mesmo `404` de uma inexistente.
+
+Exemplo de corpo para o motorista (analista acrescenta `driverId`):
+
+```json
+{
+  "title": "Falha no sistema de freios",
+  "description": "Veículo parado aguardando assistência.",
+  "category": "MECHANICAL_ISSUE",
+  "severity": "HIGH",
+  "truckPlate": "ABC-1D23",
+  "location": "BR-116, km 100",
+  "occurredAt": "2026-01-01T10:00:00-03:00",
+  "routeCode": "ENT-123"
+}
+```
+
+`routeCode` é opcional; vazio vira `null`. Campos de texto têm espaços externos
+removidos, placa é convertida para maiúsculas e datas precisam de fuso horário,
+sem aceitar data futura. Status, responsável, código, versão e horários de registro
+são definidos pelo servidor e não podem ser enviados no corpo.
+
+Incidente e evento CREATED são gravados na mesma transação. O autor é quem
+registrou, mesmo quando o analista cria para um motorista. A transação é confirmada
+antes de enviar a resposta de sucesso; falha reverte a operação.
+
+O histórico retorna versões decrescentes, com alterações agrupadas e observação
+separada. A consulta de detalhes lê incidente e eventos no mesmo snapshot.
+As operações de atendimento ainda serão implementadas.
+
 ## Validação do backend
 
 Com o PostgreSQL rodando, migration aplicada e `DATABASE_URL` configurada:
@@ -156,6 +195,10 @@ Cobrem os dois perfis, normalização de e-mail, preservação da senha, erros d
 validação, credenciais inválidas, tokens inválidos/expirados e autorização por perfil.
 Também cobrem filtros, busca, paginação acima de 100 registros, desempate por UUID,
 isolamento entre motoristas e o comando de dados de exemplo.
+Criação e detalhes são validados para os dois perfis, incluindo autoria, campos
+inválidos, agrupamento do histórico, seleção de motorista e rollback quando o
+registro do histórico falha. Há também uma verificação de falha na finalização da
+transação para garantir que a API não envie sucesso antecipadamente.
 
 ## Organização
 
@@ -167,5 +210,4 @@ isolamento entre motoristas e o comando de dados de exemplo.
 - `app/repositories`: acesso ao banco de dados.
 - `app/main.py`: criação e configuração da aplicação.
 
-Criação, detalhes e atendimento de incidentes e a integração com o frontend
-são as próximas etapas.
+Atendimento de incidentes e integração com o frontend são as próximas etapas.

@@ -94,8 +94,11 @@ A pasta `database/` não conterá o Compose: ela guarda apenas migrations, seeds
 3. Login e consulta do usuário autenticado implementados com JWT de uma hora,
    hash Argon2 e dependências de autenticação/autorização por papel. Usuários
    são criados por comando administrativo, sem cadastro público.
-4. Listagem de incidentes implementada com filtros, paginação e escopo por perfil.
-   Ordenação por criticidade, horário e UUID, com total e página lidos na mesma
-   instrução SQL. Faltam criação, detalhes, histórico e atualização concorrente.
+4. Listagem implementada com filtros, paginação e escopo por perfil. Ordenação
+   por criticidade, horário e UUID, com total e página na mesma instrução SQL.
+   Criação grava incidente e CREATED atomicamente. Detalhes incluem histórico
+   agrupado por versão, com o mesmo escopo por perfil. A transação da requisição
+   é confirmada antes de enviar a resposta HTTP. Faltam as rotas de atendimento
+   e atualização concorrente.
 5. Integrar o frontend React existente ao contrato da API, removendo os mocks e o seletor temporário de perfil.
 6. Expandir testes e containerização das aplicações; configurar deploy.

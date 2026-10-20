@@ -18,7 +18,7 @@ from app.models.user import UserRole
 from app.repositories.users import create_user
 
 
-class IncidentListTests(unittest.TestCase):
+class IncidentTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.password_hash = password_hasher.hash("senha-temporaria")
@@ -84,6 +84,8 @@ class IncidentListTests(unittest.TestCase):
         return self.client.get("/api/v1/incidents", headers=self.headers,
                                params={"search": self.marker, **params})
 
+
+class IncidentListTests(IncidentTestCase):
     def test_default_active_scope_and_priority_order(self):
         result = self.get()
         self.assertEqual(result.status_code, 200, result.text)

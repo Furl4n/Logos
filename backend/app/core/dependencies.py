@@ -10,7 +10,8 @@ from app.core.security import token_user_id
 from app.models.user import User, UserRole
 from app.repositories.users import find_by_id
 
-Database = Annotated[Connection, Depends(get_database)]
+# Confirma a transação antes de enviar a resposta HTTP.
+Database = Annotated[Connection, Depends(get_database, scope="function")]
 bearer = HTTPBearer(auto_error=False)
 
 
