@@ -58,6 +58,11 @@ O banco de dados escolhido é **PostgreSQL 14 ou superior**. A migration inicial
 A migration também define validações, chaves estrangeiras e triggers para `updated_at`.
 Índices adicionais ficam para uma etapa posterior.
 
+A migration `002_add_incident_code_and_creation_event.sql` adiciona código público
+único gerado por sequência e suporte ao evento CREATED de versão 1. A migration
+inicial já aplicada é preservada. Incidentes existentes recebem código, mas não
+ganham um autor de criação presumido.
+
 Uma atualização pode gerar vários eventos na mesma versão: por exemplo, encerramento
 gera STATUS e OBSERVATION; reabertura gera REOPEN com justificativa e ASSIGNEE se
 houver troca de responsável. A aplicação insere tudo na mesma transação e preserva
@@ -67,7 +72,9 @@ os eventos anteriores. Os papéis e as permissões são validados na camada de a
 
 Todas as alterações de atendimento usarão controle otimista por versão, incluindo observações, criticidade, atribuição e reabertura. A API receberá a versão lida e fará uma atualização atômica condicionada a ela. Se houver divergência, responderá `409 Conflict`, sem sobrescrever a mudança existente.
 
-Os eventos de histórico serão inseridos na mesma transação da alteração, agrupados por versão na resposta da API. O contrato prevê código público e evento de criação com autor; esses dois pontos ainda precisam ser incorporados à migration inicial.
+Os eventos de histórico serão inseridos na mesma transação da alteração, agrupados
+por versão na resposta da API. O suporte ao código público e ao evento de criação
+com autor está na migration `002`.
 
 ## Docker
 
@@ -87,6 +94,8 @@ A pasta `database/` não conterá o Compose: ela guarda apenas migrations, seeds
 3. Login e consulta do usuário autenticado implementados com JWT de uma hora,
    hash Argon2 e dependências de autenticação/autorização por papel. Usuários
    são criados por comando administrativo, sem cadastro público.
-4. Implementar incidentes, histórico e atualização concorrente.
+4. Listagem de incidentes implementada com filtros, paginação e escopo por perfil.
+   Ordenação por criticidade, horário e UUID, com total e página lidos na mesma
+   instrução SQL. Faltam criação, detalhes, histórico e atualização concorrente.
 5. Integrar o frontend React existente ao contrato da API, removendo os mocks e o seletor temporário de perfil.
-6. Adicionar Docker, testes, documentação de setup e deploy.
+6. Expandir testes e containerização das aplicações; configurar deploy.

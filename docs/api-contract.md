@@ -1,6 +1,6 @@
 # Contrato mínimo da API
 
-Base: `/api/v1`. Login e consulta do usuário autenticado já estão implementados;
+Base: `/api/v1`. Login, consulta do usuário autenticado e listagem de incidentes já estão implementados;
 as demais rotas permanecem planejadas.
 JSON com campos camelCase e enums em inglês, traduzidos pelo front. IDs são UUIDs.
 Datas ISO 8601 com fuso, retornadas em UTC (`Z`). Exceto login, todas as rotas
@@ -246,9 +246,9 @@ O front usa `code`, não compara mensagens. Falhas internas não expõem SQL ou 
 
 ## Ajustes pendentes para integração
 
-- Migration: acrescentar geração/persistência do código público e evento CREATED
-  de versão 1. Os demais eventos continuam a partir da versão 2. A autoria fica
-  no histórico geral, sem adicionar `createdByUserId` ao incidente.
+- Código público e suporte a CREATED estão na migration `002`. Na implementação
+  da criação, gravar o evento de versão 1 com o autor real na mesma transação.
+  Incidentes antigos recebem código, mas não recebem autoria inferida retroativamente.
 - Front local: mapear nomes traduzidos, IDs de exemplo, `plate`, `route` e histórico
   textual para o contrato; UUID nas operações e código na apresentação.
 - Integrar paginação, sessão real, estados de rede e erros. Remover o seletor de perfil.

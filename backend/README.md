@@ -109,7 +109,38 @@ A senha é solicitada sem aparecer na tela e deve ter pelo menos oito caracteres
 O comando confirma a senha e rejeita e-mails duplicados; não altera usuários existentes.
 Use o botão Authorize no Swagger para informar o token retornado pelo login.
 
-## Validação da autenticação
+## Listagem de incidentes
+
+`GET /api/v1/incidents` exige Bearer token. Analistas consultam toda a operação;
+motoristas recebem apenas os próprios incidentes, com escopo imposto no servidor.
+
+Filtros: `search`, `severity`, `category`, `status`, `timeOrder`, `page` e `pageSize`.
+Os filtros combinam com AND. Por padrão, retorna incidentes ativos (OPEN e
+UNDER_INVESTIGATION), primeira página com até 100 registros e horário decrescente.
+A criticidade sempre vem antes do horário; UUID desempata registros com mesma data.
+A busca ignora maiúsculas e espaços externos, tratando `%` e `_` como texto literal.
+Parâmetros desconhecidos são rejeitados com `422`.
+
+Resposta: `{ "items": [], "page": 1, "pageSize": 100, "total": 0 }`.
+`items` contém os resumos, sem descrição ou histórico. `total` corresponde aos
+registros autorizados após os filtros, antes da paginação.
+
+Após atualizar o código, execute `python -m app.migrate` para aplicar a migration
+`002`, que adiciona código público e suporte ao evento CREATED.
+
+Para criar dados fictícios de desenvolvimento, use um motorista já cadastrado:
+
+```bash
+python -m app.seed_incidents --driver-email motorista@example.com
+```
+
+O comando insere 120 incidentes ativos com criticidades e categorias variadas,
+incluindo o evento CREATED com o motorista como autor, na mesma transação.
+Pode ajustar a quantidade com `--count`. A execução é explícita e não acontece
+ao iniciar a aplicação; repeti-la para o mesmo motorista não duplica os exemplos.
+Os títulos têm o prefixo `[Exemplo local]`.
+
+## Validação do backend
 
 Com o PostgreSQL rodando, migration aplicada e `DATABASE_URL` configurada:
 
@@ -119,9 +150,12 @@ python -m unittest discover -s tests -v
 ```
 
 Os testes integram as rotas HTTP ao PostgreSQL, usam uma chave de teste e criam
-usuários temporários. Cada teste reverte sua transação, sem deixar usuários no banco.
+usuários e incidentes temporários. Cada teste reverte sua transação, sem deixar esses
+registros no banco. Sequências podem ter lacunas, inclusive após rollback.
 Cobrem os dois perfis, normalização de e-mail, preservação da senha, erros de
 validação, credenciais inválidas, tokens inválidos/expirados e autorização por perfil.
+Também cobrem filtros, busca, paginação acima de 100 registros, desempate por UUID,
+isolamento entre motoristas e o comando de dados de exemplo.
 
 ## Organização
 
@@ -133,6 +167,5 @@ validação, credenciais inválidas, tokens inválidos/expirados e autorização
 - `app/repositories`: acesso ao banco de dados.
 - `app/main.py`: criação e configuração da aplicação.
 
-As rotas de incidentes e a integração com o frontend são as próximas etapas.
-Os ajustes de código público e evento CREATED previstos no contrato ainda estão
-pendentes na migration inicial.
+Criação, detalhes e atendimento de incidentes e a integração com o frontend
+são as próximas etapas.

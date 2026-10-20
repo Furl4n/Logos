@@ -1,0 +1,22 @@
+from enum import StrEnum
+
+
+class IncidentCategory(StrEnum):
+    VEHICLE_ACCIDENT = "VEHICLE_ACCIDENT"
+    INJURY_ACCIDENT = "INJURY_ACCIDENT"
+    UNUSUAL_WEATHER = "UNUSUAL_WEATHER"
+    MECHANICAL_ISSUE = "MECHANICAL_ISSUE"
+    ROAD_BLOCK = "ROAD_BLOCK"
+
+
+class IncidentSeverity(StrEnum):
+    HIGH = "HIGH"
+    MEDIUM = "MEDIUM"
+    LOW = "LOW"
+
+
+class IncidentStatus(StrEnum):
+    OPEN = "OPEN"
+    UNDER_INVESTIGATION = "UNDER_INVESTIGATION"
+    CLOSED = "CLOSED"
+    INCONCLUSIVE = "INCONCLUSIVE"
