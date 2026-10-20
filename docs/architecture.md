@@ -16,7 +16,8 @@ ps-autoU/
 │   │   ├── schemas/         # contratos e validação de dados
 │   │   ├── services/        # regras de negócio e concorrência
 │   │   ├── repositories/    # acesso ao banco
-│   │   └── main.py
+│   │   ├── main.py
+│   │   └── migrate.py       # execução das migrations SQL
 │   ├── tests/
 │   ├── requirements.txt
 │   └── .env.example
@@ -38,7 +39,7 @@ ps-autoU/
 │   └── user-flows.md
 ├── README.md                # ponto de entrada do repositório
 ├── .gitignore               # ambientes locais e arquivos gerados
-└── docker-compose.yml       # será adicionado na etapa de containerização
+└── docker-compose.yml       # PostgreSQL local
 ```
 
 Diretórios ainda não criados não representam funcionalidades implementadas; são apenas a organização planejada para as próximas etapas.
@@ -70,18 +71,19 @@ Os eventos de histórico serão inseridos na mesma transação da alteração, a
 
 ## Docker
 
-Docker será configurado depois que backend e frontend existirem. O arquivo `docker-compose.yml` ficará na raiz, pois coordenará todos os serviços:
-
-- PostgreSQL;
-- API Python;
-- aplicação React, se o fluxo de desenvolvimento local exigir.
+O arquivo `docker-compose.yml` fica na raiz e atualmente executa o PostgreSQL 17
+local, com healthcheck, porta restrita ao localhost e volume persistente.
+Backend e frontend continuam executados localmente fora do Docker.
+Sua containerização poderá ser adicionada depois.
 
 A pasta `database/` não conterá o Compose: ela guarda apenas migrations, seeds e scripts específicos do banco.
 
 ## Próximas etapas
 
 1. Estrutura inicial e ambiente Python configurados com FastAPI, Uvicorn e Pydantic Settings.
-2. Configurar conexão com PostgreSQL e execução das migrations.
+2. Conexão PostgreSQL configurada com Psycopg 3 e `DATABASE_URL`. O comando
+   `python -m app.migrate` aplica os arquivos SQL e registra checksums no banco,
+   em transação e com bloqueio contra execuções simultâneas.
 3. Implementar autenticação e autorização por papel.
 4. Implementar incidentes, histórico e atualização concorrente.
 5. Integrar o frontend React existente ao contrato da API, removendo os mocks e o seletor temporário de perfil.
