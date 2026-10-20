@@ -74,7 +74,7 @@ export default function IncidentForm({ onSave, onCancel, driverId }: { onSave: (
     } finally { setSaving(false) }
   }
 
-  const inputClass = 'h-10 w-full min-w-0 rounded-md border border-line bg-white px-3 text-sm text-ink placeholder:text-muted hover:border-slate-400 aria-invalid:border-red-500'
+  const inputClass = 'h-10 w-full min-w-0 rounded-md border border-line bg-surface px-3 text-sm text-ink placeholder:text-muted hover:border-strong aria-invalid:border-danger'
   function fieldProps(field: keyof FormValues) {
     return {
       id: `${prefix}-${field}`,
@@ -113,7 +113,7 @@ export default function IncidentForm({ onSave, onCancel, driverId }: { onSave: (
           </div>
           {driverId ? <div className="text-sm"><span className="text-muted">Motorista</span><p className="mt-1 font-medium">{user?.name}</p></div> : <FormField id={`${prefix}-driverId`} label="Motorista" error={errors.driverId}>
             {driverQuery.isPending && <p role="status" className="mb-2 text-sm text-muted">Carregando motoristas…</p>}
-            {driverQuery.isError && <p role="alert" className="mb-2 text-sm text-red-700">Não foi possível carregar os motoristas. <button type="button" onClick={() => void driverQuery.refetch()} className="underline">Tentar novamente</button></p>}
+            {driverQuery.isError && <p role="alert" className="mb-2 text-sm text-danger">Não foi possível carregar os motoristas. <button type="button" onClick={() => void driverQuery.refetch()} className="underline">Tentar novamente</button></p>}
             <FormSelect id={`${prefix}-driverId`} variant="field" label="Motorista" ariaLabel="Motorista" value={values.driverId} options={driverOptions} onChange={value => update('driverId', value)} placeholder="Selecione um motorista cadastrado" required invalid={Boolean(errors.driverId)} describedBy={errors.driverId ? `${prefix}-driverId-error` : undefined} />
           </FormField>}
           <div className="grid gap-4 sm:grid-cols-2">
@@ -126,9 +126,9 @@ export default function IncidentForm({ onSave, onCancel, driverId }: { onSave: (
           </div>
         </div>
       </fieldset>
-      {saveError && <p role="alert" className="mt-3 text-sm text-red-700">{saveError}</p>}
+      {saveError && <p role="alert" className="mt-3 text-sm text-danger">{saveError}</p>}
       <div className="mt-4 flex flex-wrap justify-end gap-3">
-        <button type="button" onClick={onCancel} className="rounded-md border border-line px-4 py-2.5 text-sm font-medium hover:border-slate-400">Cancelar</button>
+        <button type="button" onClick={onCancel} className="rounded-md border border-line px-4 py-2.5 text-sm font-medium hover:border-strong">Cancelar</button>
         <Button type="submit" disabled={saving || (!driverId && !driverQuery.isSuccess)}>{saving ? 'Registrando…' : 'Registrar incidente'}</Button>
       </div>
     </form>

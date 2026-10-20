@@ -5,11 +5,77 @@
   --font-sans: 'IBM Plex Sans', sans-serif;
   --color-brand: #df5c22;
   --color-brand-dark: #ba4716;
+  --color-brand-hover: #ba4716;
   --color-brand-soft: #fff0e8;
+  --color-surface: #ffffff;
   --color-canvas: #f7f8fa;
   --color-ink: #252a30;
   --color-muted: #697786;
   --color-line: #e4e7eb;
+  --color-strong: #94a3b8;
+  --color-subtle: #334155;
+  --color-disabled: #cbd5e1;
+  --color-neutral-soft: #f1f5f9;
+  --color-danger: #b4232c;
+  --color-danger-soft: #fcf0ee;
+  --color-danger-line: #fecaca;
+  --color-warning: #88691f;
+  --color-warning-soft: #faf5e8;
+  --color-warning-line: #fde68a;
+  --color-success: #166534;
+  --color-success-soft: #edf5f2;
+  --color-success-line: #bbf7d0;
+  --color-info: #1e40af;
+  --color-info-soft: #eff6ff;
+  --color-info-line: #dbeafe;
+  --color-avatar: #fed7aa;
+  --color-avatar-line: #ffedd5;
+  --color-avatar-ink: #78350f;
+  --color-priority-high: #d46b60;
+  --color-priority-medium: #d7af5e;
+  --color-priority-low: #75a39a;
+}
+
+:root {
+  color-scheme: light;
+  --scroll-thumb: #b8c1ca;
+  --scroll-thumb-hover: #8794a1;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-brand-dark: #ff9a66;
+  --color-brand-hover: #ba4716;
+  --color-brand-soft: #39271f;
+  --color-surface: #1b222b;
+  --color-canvas: #141a21;
+  --color-ink: #edf1f5;
+  --color-muted: #a2afbd;
+  --color-line: #34404e;
+  --color-strong: #64748b;
+  --color-subtle: #cbd5e1;
+  --color-disabled: #596777;
+  --color-neutral-soft: #293340;
+  --color-danger: #ffaaa7;
+  --color-danger-soft: #3c2428;
+  --color-danger-line: #754149;
+  --color-warning: #efd08a;
+  --color-warning-soft: #352e20;
+  --color-warning-line: #695638;
+  --color-success: #94d9b5;
+  --color-success-soft: #20362e;
+  --color-success-line: #385e4c;
+  --color-info: #a6c9ff;
+  --color-info-soft: #223149;
+  --color-info-line: #3d567b;
+  --color-avatar: #583b28;
+  --color-avatar-line: #392b23;
+  --color-avatar-ink: #ffd5aa;
+  --color-priority-high: #df857b;
+  --color-priority-medium: #d7af5e;
+  --color-priority-low: #81b6a6;
+  --scroll-thumb: #526172;
+  --scroll-thumb-hover: #7b8da0;
 }
 
 @keyframes sheet-enter {
@@ -19,20 +85,20 @@
 
 .board-scroll {
   scrollbar-width: thin;
-  scrollbar-color: #b8c1ca transparent;
+  scrollbar-color: var(--scroll-thumb) transparent;
 }
 
 .board-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
 .board-scroll::-webkit-scrollbar-track { background: transparent; }
-.board-scroll::-webkit-scrollbar-thumb { background: #b8c1ca; border-radius: 999px; }
-.board-scroll::-webkit-scrollbar-thumb:hover { background: #8794a1; }
+.board-scroll::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 999px; }
+.board-scroll::-webkit-scrollbar-thumb:hover { background: var(--scroll-thumb-hover); }
 
 @media (width < 40rem) and (prefers-reduced-motion: no-preference) {
   .mobile-sheet { animation: sheet-enter 220ms ease-out; }
 }
 
 @layer base {
-  body { @apply m-0 min-w-80 bg-white font-sans text-ink antialiased; }
+  body { @apply m-0 min-w-80 bg-surface font-sans text-ink antialiased; }
   button, input, select { font: inherit; }
   button, select { @apply cursor-pointer; }
   button { @apply transition-colors motion-reduce:transition-none; }

@@ -5,6 +5,15 @@
     <meta name="theme-color" content="#df5c22" />
     <meta name="description" content="Logos — central de gestão de incidentes de transporte." />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      (() => {
+        let theme = 'system';
+        try { theme = localStorage.getItem('logos.theme') || 'system'; } catch {}
+        const dark = theme === 'dark' || (theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+        if (dark) document.querySelector('meta[name="theme-color"]').content = '#141a21';
+      })();
+    </script>
     <title>Central de incidentes | Logos</title>
   </head>
   <body>

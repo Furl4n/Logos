@@ -45,9 +45,9 @@ export default function IncidentReopen({ incident, onReopened }: { incident: Inc
       }
     }}>
       <FormField id="reopen-reason" label="Justificativa da reabertura" showRequiredIndicator={false} error={conflict ? undefined : error}>
-        <textarea id="reopen-reason" autoFocus required value={reason} onChange={event => { setReason(event.target.value); if (!conflict) setError('') }} aria-invalid={Boolean(error) && !conflict} aria-describedby={error && !conflict ? 'reopen-reason-error' : undefined} rows={3} className="w-full resize-y rounded-md border border-line bg-white px-3 py-2.5 text-sm text-ink aria-invalid:border-red-500" placeholder="Explique o que precisa ser revisto ou atendido." />
+        <textarea id="reopen-reason" autoFocus required value={reason} onChange={event => { setReason(event.target.value); if (!conflict) setError('') }} aria-invalid={Boolean(error) && !conflict} aria-describedby={error && !conflict ? 'reopen-reason-error' : undefined} rows={3} className="w-full resize-y rounded-md border border-line bg-surface px-3 py-2.5 text-sm text-ink aria-invalid:border-danger" placeholder="Explique o que precisa ser revisto ou atendido." />
       </FormField>
-      {conflict && <div role="alert" className="text-sm text-red-700">{error}</div>}
+      {conflict && <div role="alert" className="text-sm text-danger">{error}</div>}
       <div className="flex justify-end gap-3">
         <button type="button" className="rounded-md border border-line px-3 py-2 text-sm font-medium" onClick={() => { setEditing(false); setReason(''); setError(''); setConflict(false); setBlocked(false); setVersion(incident.version ?? 1) }}>Cancelar</button>
         <Button type="submit" disabled={blocked} className="disabled:cursor-not-allowed disabled:opacity-50">{refreshing ? 'Atualizando dados…' : isPending ? 'Reabrindo…' : 'Confirmar reabertura'}</Button>

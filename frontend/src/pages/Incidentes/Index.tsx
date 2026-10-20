@@ -41,7 +41,7 @@ function IncidentPage({ driverView }: { driverView: boolean }) {
   }
   return <>
     <IncidentHeader driverView={driverView} onAdd={() => { setSuccessMessage(''); setFormOpen(true) }} />
-    {successMessage && <div role="status" className="mb-4 flex items-center gap-2 rounded-md border border-green-200 bg-white px-3 py-2 text-sm text-green-800"><Icon name="check" size={17} /><span>{successMessage}</span><button type="button" aria-label="Fechar confirmação" onClick={() => setSuccessMessage('')} className="ml-auto rounded p-1"><Icon name="close" size={16} /></button></div>}
+    {successMessage && <div role="status" className="mb-4 flex items-center gap-2 rounded-md border border-success-line bg-surface px-3 py-2 text-sm text-success"><Icon name="check" size={17} /><span>{successMessage}</span><button type="button" aria-label="Fechar confirmação" onClick={() => setSuccessMessage('')} className="ml-auto rounded p-1"><Icon name="close" size={16} /></button></div>}
     <section aria-label="Fila de ocorrências">
       <IncidentToolbar
         search={state.search}
@@ -61,7 +61,7 @@ function IncidentPage({ driverView }: { driverView: boolean }) {
       <div aria-live="polite" className="sr-only">{state.total} ocorrências encontradas</div>
       <div className="mt-3" aria-busy={state.isFetching || state.searching}>
         {state.isPending || state.searching ? <p role="status" className="py-10 text-center text-sm text-muted">Carregando ocorrências…</p>
-          : state.isError ? <div role="alert" className="rounded-lg border border-red-200 p-5 text-sm"><p>{state.error instanceof ApiError ? state.error.message : 'Não foi possível carregar as ocorrências.'}</p><button type="button" onClick={() => void state.refetch()} className="mt-3 font-medium text-brand-dark underline">Tentar novamente</button></div>
+          : state.isError ? <div role="alert" className="rounded-lg border border-danger-line p-5 text-sm"><p>{state.error instanceof ApiError ? state.error.message : 'Não foi possível carregar as ocorrências.'}</p><button type="button" onClick={() => void state.refetch()} className="mt-3 font-medium text-brand-dark underline">Tentar novamente</button></div>
           : <IncidentList incidents={state.filtered} onOpen={(incident: Incident) => setSelectedId(incident.id)} onClearFilters={state.clearFilters} />}
         {!state.isPending && !state.isError && !state.searching && state.total > 100 && <nav aria-label="Paginação de ocorrências" className="mt-5 flex items-center justify-end gap-4 text-sm">
           <button type="button" disabled={state.page <= 1} onClick={() => state.setPage(state.page - 1)} className="rounded-md border border-line px-3 py-2 hover:bg-canvas disabled:opacity-40">Anterior</button>

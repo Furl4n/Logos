@@ -89,7 +89,7 @@ export default function DateTimePicker({ id, value, onChange, invalid, described
           setMonth(new Date(initialDate.getFullYear(), initialDate.getMonth(), 1))
         }
         setOpen(!open)
-      }} className={`flex h-10 w-full items-center justify-between rounded-md border bg-white px-3 text-sm text-ink ${invalid ? 'border-red-500' : open ? 'border-brand/50' : 'border-line hover:border-slate-400'}`}>
+      }} className={`flex h-10 w-full items-center justify-between rounded-md border bg-surface px-3 text-sm text-ink ${invalid ? 'border-danger' : open ? 'border-brand/50' : 'border-line hover:border-strong'}`}>
         <span>{valid ? `${selected.toLocaleDateString('pt-BR')} às ${time}` : 'Selecione a data e hora'}</span>
         <svg className="text-muted" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 11h18" /></svg>
       </button>
@@ -100,7 +100,7 @@ export default function DateTimePicker({ id, value, onChange, invalid, described
             break
           }
         }
-      }} className="fixed z-40 w-72 max-w-[calc(100vw-3rem)] rounded-lg border border-line bg-white p-3 shadow-lg shadow-slate-900/10">
+      }} className="fixed z-40 w-72 max-w-[calc(100vw-3rem)] rounded-lg border border-line bg-surface p-3 shadow-lg shadow-slate-900/10">
         <div className="mb-3 flex items-center justify-between">
           <button type="button" aria-label="Mês anterior" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))} className="flex size-8 items-center justify-center rounded-md text-muted hover:bg-brand-soft hover:text-brand-dark">‹</button>
           <span aria-live="polite" className="text-sm font-semibold capitalize text-ink">{month.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</span>
@@ -116,7 +116,7 @@ export default function DateTimePicker({ id, value, onChange, invalid, described
             return <button key={key} type="button" aria-label={day.toLocaleDateString('pt-BR', { dateStyle: 'full' })} aria-pressed={active} aria-current={key === dateKey(today) ? 'date' : undefined} disabled={key > dateKey(today)} onClick={() => {
               const nextTime = key === dateKey(today) && time > `${pad(today.getHours())}:${pad(today.getMinutes())}` ? `${pad(today.getHours())}:${pad(today.getMinutes())}` : time
               onChange(`${key}T${nextTime}`)
-            }} className={`h-8 rounded-md text-sm disabled:cursor-not-allowed disabled:text-slate-300 ${active ? 'bg-brand font-semibold text-white' : 'text-ink hover:bg-brand-soft hover:text-brand-dark aria-[current=date]:font-semibold aria-[current=date]:text-brand-dark'}`}>{index + 1}</button>
+            }} className={`h-8 rounded-md text-sm disabled:cursor-not-allowed disabled:text-disabled ${active ? 'bg-brand font-semibold text-white' : 'text-ink hover:bg-brand-soft hover:text-brand-dark aria-[current=date]:font-semibold aria-[current=date]:text-brand-dark'}`}>{index + 1}</button>
           })}
         </div>
         <div className="mt-3 flex items-center justify-between border-t border-line pt-3">
@@ -132,7 +132,7 @@ export default function DateTimePicker({ id, value, onChange, invalid, described
             onChange(`${dateKey(now)}T${pad(now.getHours())}:${pad(now.getMinutes())}`)
             setMonth(new Date(now.getFullYear(), now.getMonth(), 1))
           }}>Agora</button>
-          <button type="button" className="rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-dark" onClick={() => { setOpen(false); trigger.current?.focus() }}>Concluir</button>
+          <button type="button" className="rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-hover" onClick={() => { setOpen(false); trigger.current?.focus() }}>Concluir</button>
         </div>
       </div>, portalTarget)}
     </div>
