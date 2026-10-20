@@ -16,6 +16,7 @@ class Settings(BaseSettings):
 
     app_name: str = "Logos API"
     database_url: SecretStr | None = None
+    jwt_secret_key: SecretStr | None = None
 
 
 @lru_cache

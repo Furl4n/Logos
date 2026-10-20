@@ -1,6 +1,7 @@
 # Contrato mínimo da API
 
-Contrato planejado; o backend ainda não está implementado. Base: `/api/v1`.
+Base: `/api/v1`. Login e consulta do usuário autenticado já estão implementados;
+as demais rotas permanecem planejadas.
 JSON com campos camelCase e enums em inglês, traduzidos pelo front. IDs são UUIDs.
 Datas ISO 8601 com fuso, retornadas em UTC (`Z`). Exceto login, todas as rotas
 exigem `Authorization: Bearer <accessToken>`.

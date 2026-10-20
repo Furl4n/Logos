@@ -84,7 +84,9 @@ A pasta `database/` não conterá o Compose: ela guarda apenas migrations, seeds
 2. Conexão PostgreSQL configurada com Psycopg 3 e `DATABASE_URL`. O comando
    `python -m app.migrate` aplica os arquivos SQL e registra checksums no banco,
    em transação e com bloqueio contra execuções simultâneas.
-3. Implementar autenticação e autorização por papel.
+3. Login e consulta do usuário autenticado implementados com JWT de uma hora,
+   hash Argon2 e dependências de autenticação/autorização por papel. Usuários
+   são criados por comando administrativo, sem cadastro público.
 4. Implementar incidentes, histórico e atualização concorrente.
 5. Integrar o frontend React existente ao contrato da API, removendo os mocks e o seletor temporário de perfil.
 6. Adicionar Docker, testes, documentação de setup e deploy.
