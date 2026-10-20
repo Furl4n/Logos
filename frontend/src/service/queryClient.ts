@@ -10,5 +10,3 @@ export const queryClient = new QueryClient({
     mutations: { retry: false },
   },
 })
-
-window.addEventListener('auth:expired', () => queryClient.clear())

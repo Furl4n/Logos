@@ -1,9 +1,11 @@
 import { useEffect, useId, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useCurrentUser, useLogout } from '../../hooks/useAuth'
 
 export default function UserMenu() {
   const { data: user } = useCurrentUser()
   const logout = useLogout()
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [leaving, setLeaving] = useState(false)
   const [error, setError] = useState('')
@@ -27,7 +29,10 @@ export default function UserMenu() {
     if (leaving) return
     setLeaving(true)
     setError('')
-    try { await logout() }
+    try {
+      await logout()
+      navigate('/login', { replace: true })
+    }
     catch { setError('Não foi possível sair. Tente novamente.') }
     finally { setLeaving(false) }
   }
