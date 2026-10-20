@@ -53,6 +53,15 @@ O menu da conta mostra o usuário real e permite sair.
 
 ## Fila e registro
 
+Busca e ordenação permanecem visíveis. Analistas também selecionam responsável
+(Todos, Meus atendimentos ou Sem responsável) diretamente na barra, com aplicação
+imediata. O botão Filtros abre um painel abaixo dele com criticidade, categoria
+e status. As escolhas do painel são aplicadas juntas
+ao confirmar, reiniciando a paginação. Fechar descarta o rascunho. O botão mostra
+a quantidade de filtros diferentes do padrão, sem contar busca e ordenação.
+O painel acompanha o botão durante a rolagem, limita sua largura à tela e fecha
+ao clicar fora ou pressionar Escape.
+
 `useIncidents` coordena os filtros, com busca após 300 ms. Criticidade, categoria,
 status e ordenação são enviados à API; mudanças voltam à primeira página.
 Cada página contém até 100 incidentes, com navegação quando há mais resultados.
@@ -91,8 +100,8 @@ Para popular o banco de desenvolvimento, consulte `app.seed_incidents` no backen
 ## Telas menores
 
 No celular, um cabeçalho compacto mantém o acesso ao início e ao menu da conta.
-Os filtros ficam em duas colunas, com busca na largura total; seleções longas
-são truncadas no campo e aparecem completas na lista de opções. Os cards
+A busca e as ações se reorganizam em linhas; os filtros ficam no painel.
+Seleções longas são truncadas no campo e aparecem completas na lista de opções. Os cards
 distribuem título e metadados em linhas, mantendo o título truncado.
 Modais têm margens menores e rolagem interna; detalhes e atendimento adaptam
 as colunas ao espaço disponível. Em tablets, a navegação lateral usa ícones;

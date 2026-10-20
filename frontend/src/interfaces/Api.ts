@@ -6,6 +6,7 @@ export type IncidentSeverity = 'HIGH' | 'MEDIUM' | 'LOW'
 export type IncidentStatus = 'OPEN' | 'UNDER_INVESTIGATION' | 'CLOSED' | 'INCONCLUSIVE'
 export type IncidentCategory = 'VEHICLE_ACCIDENT' | 'INJURY_ACCIDENT' | 'UNUSUAL_WEATHER' | 'MECHANICAL_ISSUE' | 'ROAD_BLOCK'
 export interface IncidentFilters {
+  assignment?: 'ALL' | 'MINE' | 'UNASSIGNED'
   search?: string
   severity?: IncidentSeverity
   category?: IncidentCategory

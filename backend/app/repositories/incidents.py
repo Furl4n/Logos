@@ -92,6 +92,11 @@ def list_incidents(
     if filters.severity is not None:
         conditions.append(sql.SQL("i.severity = %s"))
         parameters.append(filters.severity.value)
+    if filters.assignment == "MINE":
+        conditions.append(sql.SQL("i.analyst_id = %s"))
+        parameters.append(user.id)
+    elif filters.assignment == "UNASSIGNED":
+        conditions.append(sql.SQL("i.analyst_id IS NULL"))
     if filters.category is not None:
         conditions.append(sql.SQL("i.category = %s"))
         parameters.append(filters.category.value)

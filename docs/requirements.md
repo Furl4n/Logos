@@ -174,7 +174,10 @@ responde `409 Conflict` caso exista divergência. Nenhuma atualização deve ser
 ## 8. Decisões consolidadas e estado atual
 
 - Uma página `/incidentes`, adaptada ao perfil autenticado, com cards agrupados
-  por criticidade e filtros de busca, criticidade, categoria, status e ordem temporal.
+  por criticidade, busca e ordem temporal visíveis. Criticidade, categoria e status
+  ficam no painel de filtros; analistas também podem selecionar Todos, Meus
+  atendimentos ou Sem responsável diretamente na barra. O painel aplica as escolhas na confirmação
+  e o botão indica a quantidade de filtros diferentes do padrão.
 - Registro com título, descrição, motorista, caminhão, localização, categoria,
   criticidade, data da ocorrência e código opcional de rota/entrega.
 - UUID identifica o recurso; código público `INC-...` identifica o chamado visualmente.

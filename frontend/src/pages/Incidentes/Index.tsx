@@ -50,15 +50,16 @@ function IncidentPage({ driverView }: { driverView: boolean }) {
         search={state.search}
         setSearch={state.setSearch}
         severity={state.severity}
-        setSeverity={state.setSeverity}
         category={state.category}
-        setCategory={state.setCategory}
         hasFilters={state.hasFilters}
         clearFilters={state.clearFilters}
         timeOrder={state.timeOrder}
         setTimeOrder={state.setTimeOrder}
         status={state.status}
-        setStatus={state.setStatus}
+        assignment={state.assignment}
+        setAssignment={state.setAssignment}
+        applyFilters={state.applyFilters}
+        driverView={driverView}
       />
       <div aria-live="polite" className="sr-only">{state.total} ocorrências encontradas</div>
       <div className="mt-3" aria-busy={state.isFetching || state.searching}>

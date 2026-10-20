@@ -16,9 +16,10 @@ interface FormSelectProps {
   required?: boolean
   invalid?: boolean
   describedBy?: string
+  wrapLabel?: boolean
 }
 
-export default function FormSelect({ label, ariaLabel, value, options, onChange, active = false, id: providedId, variant = 'filter', placeholder = 'Selecione', required = false, invalid = false, describedBy }: FormSelectProps) {
+export default function FormSelect({ label, ariaLabel, value, options, onChange, active = false, id: providedId, variant = 'filter', placeholder = 'Selecione', required = false, invalid = false, describedBy, wrapLabel = false }: FormSelectProps) {
   const generatedId = useId()
   const id = providedId ?? generatedId
   const rootRef = useRef<HTMLDivElement>(null)
@@ -140,11 +141,11 @@ export default function FormSelect({ label, ariaLabel, value, options, onChange,
             showOptions(event.key === 'ArrowUp' ? options.length - 1 : Math.max(selectedIndex, 0))
           }
         }}
-        className={`inline-flex h-10 max-w-full items-center gap-1.5 rounded-md border bg-white text-sm ${variant === 'field' ? 'w-full justify-between px-3' : 'w-full justify-between px-2 sm:w-auto'} ${invalid ? 'border-red-500' : open || active ? 'border-brand/50' : 'border-line hover:border-slate-400'}`}
+        className={`inline-flex ${wrapLabel ? 'min-h-10 py-2' : 'h-10'} max-w-full items-center gap-1.5 rounded-md border bg-white text-sm ${variant === 'field' ? 'w-full justify-between px-3' : 'w-full justify-between px-2 sm:w-auto'} ${invalid ? 'border-red-500' : open || active ? 'border-brand/50' : 'border-line hover:border-slate-400'}`}
       >
         <span className="inline-flex min-w-0 items-baseline gap-1.5">
           {variant === 'filter' && <span className="shrink-0 text-xs font-medium text-brand-dark">{label}</span>}
-          <span className={`min-w-0 truncate ${variant === 'filter' ? 'font-medium' : 'font-normal'} ${selected ? 'text-ink' : 'text-muted'}`}>{selected?.label ?? placeholder}</span>
+          <span className={`min-w-0 ${wrapLabel ? 'break-words text-left leading-snug' : 'truncate'} ${variant === 'filter' ? 'font-medium' : 'font-normal'} ${selected ? 'text-ink' : 'text-muted'}`}>{selected?.label ?? placeholder}</span>
         </span>
         <span className={`inline-flex shrink-0 text-muted ${open ? '-rotate-90' : 'rotate-90'}`}><Icon name="arrow" size={16} /></span>
       </button>
@@ -161,7 +162,7 @@ export default function FormSelect({ label, ariaLabel, value, options, onChange,
           onBlur={event => {
             if (!rootRef.current?.contains(event.relatedTarget) && !event.currentTarget.contains(event.relatedTarget)) setOpen(false)
           }}
-          style={position}
+          style={{ ...position, ...(wrapLabel ? { width: position.minWidth } : {}) }}
           className="fixed z-40 w-max max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-lg border border-line bg-white p-1.5 shadow-lg shadow-slate-900/10 outline-none"
         >
           {options.map((option, index) => (
@@ -175,7 +176,7 @@ export default function FormSelect({ label, ariaLabel, value, options, onChange,
               onClick={() => choose(index)}
               className={`flex cursor-pointer items-center justify-between gap-5 rounded-md px-3 py-2.5 text-sm ${highlighted === index ? 'bg-brand-soft text-brand-dark' : 'text-ink'} ${option.value === value ? 'font-medium' : 'font-normal'}`}
             >
-              <span>{option.label}</span>
+              <span className="min-w-0 break-words">{option.label}</span>
               <span className="inline-flex size-4 shrink-0 items-center justify-center text-brand-dark">
                 {option.value === value && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6" /></svg>}
               </span>

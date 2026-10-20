@@ -14,6 +14,7 @@ class IncidentFilters(BaseModel):
     search: str | None = None
     severity: IncidentSeverity | None = None
     category: IncidentCategory | None = None
+    assignment: Literal["ALL", "MINE", "UNASSIGNED"] = "ALL"
     status: Literal["ACTIVE", "ALL"] | IncidentStatus = "ACTIVE"
     timeOrder: Literal["newest", "oldest"] = "newest"
     page: int = Field(default=1, ge=1)
