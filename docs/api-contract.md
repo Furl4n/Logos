@@ -15,7 +15,7 @@ CORS permite credenciais somente para essas origens explícitas.
 ### Usuário
 
 Usuário autenticado: `{ "id": "UUID", "name": "Lucas Costa", "email": "lucas@example.com", "role": "ANALYST" }`.
-Papéis: `DRIVER` e `ANALYST`. Nunca retornar senha ou hash.
+Papéis: `DRIVER`, `ANALYST` e `ADMIN`. Nunca retornar senha ou hash.
 Referências a motorista, responsável e autor retornam somente `{ "id": "UUID", "name": "Nome" }`.
 
 ### Resumo do incidente
@@ -99,7 +99,8 @@ Não há cadastro público, refresh token ou revogação de token neste contrato
 Retorna `200` com usuário autenticado, restaurando a sessão e a visão da página
 única `/incidentes`. Token ausente, inválido ou expirado retorna `401`.
 Ao expirar, o front limpa o cache e solicita login.
-Sem revogação, tokens emitidos continuam válidos até expirar.
+Contas desativadas não podem fazer login e recebem `401` inclusive com JWT
+previamente emitido. A reativação restaura o acesso, incluindo tokens ainda válidos.
 
 ### `POST /auth/logout`
 
@@ -109,14 +110,36 @@ Isso não revoga cópias previamente roubadas do JWT.
 
 ## Usuários
 
+### Administração — exclusiva de `ADMIN`
+
+`GET /users`: lista paginada com `search` (nome/e-mail, busca literal sem diferenciar
+maiúsculas, máximo 255 caracteres), `page` (padrão 1) e `pageSize` (padrão 20,
+máximo 100). Resposta `{ items, total, page, pageSize }`. Cada item possui
+`{ id, name, email, role, isActive }`, incluindo as contas inativas.
+
+`POST /users`: recebe `{ name, email, password, role }`. Nome de 1–150 caracteres
+após trim, e-mail normalizado e senha de 8–128 caracteres, sem trim. Somente
+`DRIVER` e `ANALYST` são aceitos. Retorna `201` com o usuário criado, ativo;
+e-mail duplicado retorna `409 EMAIL_ALREADY_EXISTS`.
+
+`PATCH /users/{userId}/status`: recebe `{ isActive: boolean }` e retorna `200`
+com a conta atualizada. Permite desativar e reativar motoristas e analistas.
+Contas administrativas são protegidas (`403`). Analista com atendimento ativo
+não pode ser desativado (`409 ACTIVE_ASSIGNMENTS`); deve transferir antes.
+Conta inexistente retorna `404`. Não exclui usuários, incidentes ou histórico.
+
+Contas `ADMIN` são criadas exclusivamente pelo comando `python -m app.create_user`.
+Administradores não acessam as rotas de incidentes nem as listas auxiliares de
+atendimento. Motoristas e analistas não acessam a administração (`403`).
+
 ### `GET /users/drivers`
 
 Somente analistas. Retorna `200` com array de referências `{ id, name }` de usuários
-DRIVER para o formulário de registro, ordenado por nome e, no empate, ID.
+DRIVER ativos para o formulário de registro, ordenado por nome e, no empate, ID.
 
 ### `GET /users/analysts`
 
-Somente analistas. Mesmo formato, para usuários ANALYST, permitindo transferência.
+Somente analistas. Mesmo formato, para usuários ANALYST ativos, permitindo transferência.
 Pode incluir o próprio usuário; o front o exclui das opções de transferência.
 Listas auxiliares sem paginação no MVP; não são endpoints de gestão de usuários.
 

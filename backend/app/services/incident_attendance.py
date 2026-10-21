@@ -92,8 +92,8 @@ def assign_incident(
     if current.assignee is not None:
         _require_owner(current, user)
     _require_active(current)
-    target = find_by_id(connection, data.analystId)
-    if target is None or target.role != UserRole.ANALYST:
+    target = find_by_id(connection, data.analystId, lock=True)
+    if target is None or target.role != UserRole.ANALYST or not target.is_active:
         raise APIError(422, "VALIDATION_ERROR", "Selecione um analista válido.")
     if current.assignee is None and target.id != user.id:
         raise APIError(403, "FORBIDDEN", "Assuma a ocorrência para si antes de transferir.")

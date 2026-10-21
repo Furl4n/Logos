@@ -6,6 +6,7 @@ from uuid import UUID
 class UserRole(StrEnum):
     DRIVER = "DRIVER"
     ANALYST = "ANALYST"
+    ADMIN = "ADMIN"
 
 
 @dataclass(frozen=True)
@@ -15,3 +16,4 @@ class User:
     email: str
     role: UserRole
     password_hash: str = field(repr=False)
+    is_active: bool = True

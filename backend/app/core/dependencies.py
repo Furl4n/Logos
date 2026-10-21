@@ -26,7 +26,7 @@ def get_current_user(
     if token is None:
         raise APIError(401, "UNAUTHENTICATED", "Autenticação necessária.")
     user = find_by_id(connection, token_user_id(token))
-    if user is None:
+    if user is None or not user.is_active:
         raise APIError(401, "UNAUTHENTICATED", "Sessão inválida ou expirada.")
     return user
 
@@ -38,3 +38,18 @@ def require_analyst(user: CurrentUser) -> User:
     if user.role != UserRole.ANALYST:
         raise APIError(403, "FORBIDDEN", "Acesso exclusivo para analistas.")
     return user
+
+
+def require_admin(user: CurrentUser) -> User:
+    if user.role != UserRole.ADMIN:
+        raise APIError(403, "FORBIDDEN", "Acesso exclusivo para administradores.")
+    return user
+
+
+def require_operator(user: CurrentUser) -> User:
+    if user.role not in {UserRole.DRIVER, UserRole.ANALYST}:
+        raise APIError(403, "FORBIDDEN", "Acesso exclusivo para motoristas e analistas.")
+    return user
+
+
+OperationalUser = Annotated[User, Depends(require_operator)]

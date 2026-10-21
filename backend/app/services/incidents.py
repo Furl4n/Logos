@@ -93,7 +93,7 @@ def create_incident(connection: Connection, user: User, data: CreateIncidentRequ
         if data.driverId is None:
             raise APIError(422, "VALIDATION_ERROR", "Selecione um motorista.")
         driver = find_by_id(connection, data.driverId)
-        if driver is None or driver.role != UserRole.DRIVER:
+        if driver is None or driver.role != UserRole.DRIVER or not driver.is_active:
             raise APIError(422, "VALIDATION_ERROR", "Selecione um motorista válido.")
         driver_id = driver.id
 
