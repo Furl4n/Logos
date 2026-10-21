@@ -4,7 +4,7 @@ from psycopg import Connection
 
 from app.core.errors import APIError
 from app.models.incident import IncidentEvent, IncidentSeverity, IncidentStatus
-from app.models.user import User, UserRole
+from app.models.user import User
 from app.repositories import incidents as repository
 from app.repositories.users import find_by_id
 from app.schemas.incidents import (
@@ -31,8 +31,8 @@ def _current(
     current = get_incident(connection, user, incident_id)
     if current.version != version:
         raise _conflict(current)
-    if user.role != UserRole.ANALYST:
-        raise APIError(403, "FORBIDDEN", "Somente analistas podem alterar o atendimento.")
+    if not user.can_attend:
+        raise APIError(403, "FORBIDDEN", "Somente analistas e administradores podem alterar o atendimento.")
     return current
 
 
@@ -92,8 +92,8 @@ def assign_incident(
     if current.assignee is not None:
         _require_owner(current, user)
     _require_active(current)
-    target = find_by_id(connection, data.analystId)
-    if target is None or target.role != UserRole.ANALYST:
+    target = find_by_id(connection, data.analystId, lock=True)
+    if target is None or not target.can_attend or not target.is_active:
         raise APIError(422, "VALIDATION_ERROR", "Selecione um analista válido.")
     if current.assignee is None and target.id != user.id:
         raise APIError(403, "FORBIDDEN", "Assuma a ocorrência para si antes de transferir.")

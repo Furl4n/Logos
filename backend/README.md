@@ -104,7 +104,16 @@ Crie usuários pelo terminal com a `.venv` ativa:
 ```bash
 python -m app.create_user --name "Analista" --email analista@example.com --role ANALYST
 python -m app.create_user --name "Motorista" --email motorista@example.com --role DRIVER
+python -m app.create_user --name "Administrador" --email admin@example.com --role ADMIN
 ```
+
+Administradores acessam a gestão de usuários em `/usuarios`, onde podem criar,
+listar, desativar e reativar contas de motoristas e analistas. Contas ADMIN
+continuam sendo criadas somente pelo terminal. A migration
+`003_add_user_administration.sql` adiciona o papel e o estado ativo das contas;
+execute `python -m app.migrate` antes de usar a versão atualizada da API.
+Contas desativadas não podem autenticar ou usar sessões existentes. Analistas
+com atendimentos ativos precisam transferi-los antes de serem desativados.
 
 A senha é solicitada sem aparecer na tela e deve ter pelo menos oito caracteres.
 O comando confirma a senha e rejeita e-mails duplicados; não altera usuários existentes.

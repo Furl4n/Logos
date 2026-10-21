@@ -1,7 +1,7 @@
 # Logos — Especificação de Requisitos
 
 > Documento vivo do MVP para o case prático da AutoU.
-> Última atualização: 19 de outubro de 2026.
+> Última atualização: 21 de outubro de 2026.
 
 ## 1. Objetivo do produto
 
@@ -20,7 +20,8 @@ concorrentes.
 
 - API Python que persiste e gerencia incidentes.
 - Interface React que consome a API.
-- Autenticação por e-mail e senha, com os perfis motorista e analista.
+- Autenticação por e-mail e senha, com os perfis motorista, analista e administrador.
+- Gestão de contas operacionais pelo administrador: cadastro, listagem, desativação e reativação.
 - Visualização de muitos incidentes (o seed deve conter pelo menos 100).
 - Filtros por criticidade e categoria.
 - Criação manual de incidente pela interface do motorista ou do analista.
@@ -51,6 +52,13 @@ as suas ocorrências. Ele não altera o status operacional; essa decisão cabe a
 analista.
 
 ### Permissões por perfil
+
+**Administrador:** possui acesso exclusivo à gestão em `/usuarios`, lista e busca contas,
+cria motoristas e analistas, desativa ou reativa contas operacionais.
+Também possui todas as permissões de analista, inclusive atendimento e quadro;
+só altera atendimentos ativos dos quais é responsável. Contas administrativas são criadas pelo terminal.
+Contas inativas não acessam a API, mesmo com sessão anterior; seus dados são
+preservados. Analistas precisam transferir atendimentos ativos antes da desativação.
 
 | Ação | Motorista | Analista |
 |---|---:|---:|
@@ -173,7 +181,7 @@ responde `409 Conflict` caso exista divergência. Nenhuma atualização deve ser
 
 ## 8. Decisões consolidadas e estado atual
 
-- Página complementar `/quadro`, exclusiva de analistas, para visualizar incidentes
+- Página complementar `/quadro`, para analistas e administradores, para visualizar incidentes
   ativos por atribuição: Sem responsável, Meus atendimentos e Com outros analistas.
   Cada coluna tem contagem, carregamento ao rolar e prioridade por criticidade; os cards abrem
   os detalhes existentes, sem interação de arrastar.

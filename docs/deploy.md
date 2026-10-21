@@ -50,13 +50,11 @@ na lista permitida, mesmo quando frontend e API compartilham o domínio.
 O repositório está vinculado ao Neon por `.neon` (ignorado pelo Git).
 Com a CLI autenticada, execute `neon deploy` na raiz para aplicar `neon.ts`
 e gerar `.env.local` com `DATABASE_URL` e `DATABASE_URL_UNPOOLED`.
-O backend lê primeiro `backend/.env` e depois a `.env.local` da raiz;
-variáveis do processo têm precedência sobre ambos. Enquanto esse arquivo
-estiver presente, os comandos locais usam o banco Neon vinculado, inclusive
-se `backend/.env` ainda apontar para o Docker. Para voltar ao banco local,
-mova `.env.local` para fora do repositório ou forneça `DATABASE_URL`
-explicitamente no processo. Confira também `DATABASE_URL_UNPOOLED` antes
-de executar migrations: elas usam essa conexão direta quando disponível.
+O backend lê somente `backend/.env`, configurado localmente para o Docker.
+A `.env.local` da raiz guarda as conexões Neon e não é carregada automaticamente
+pelo backend. Para acessar o Neon, forneça suas variáveis explicitamente no
+processo; elas têm precedência sobre `backend/.env`. Para migrations remotas,
+forneça também `DATABASE_URL_UNPOOLED`, usada como conexão direta quando disponível.
 
 Mantenha as credenciais no arquivo ignorado e cadastre `DATABASE_URL`
 separadamente na Vercel; `neon deploy` não configura as variáveis da Vercel.
@@ -82,6 +80,22 @@ de desenvolvimento. As migrations não são executadas em requisições nem no
 build dos serviços; isso evita que um preview altere o banco de produção.
 
 ## Validação
+
+### Habilitar administração de usuários
+
+Depois de publicar esta funcionalidade, aplique a migration
+`003_add_user_administration.sql` com `python -m app.migrate` antes de usar a API
+atualizada. Ela adiciona `ADMIN` ao enum e mantém todas as contas existentes ativas.
+Crie a primeira conta administrativa a partir de `backend/`, no banco desejado:
+
+```bash
+python -m app.create_user --name "Administrador" --email admin@logos.com --role ADMIN
+```
+
+O comando solicita a senha sem exibi-la. Faça login para abrir `/usuarios`.
+Não existe cadastro público de administradores nem senha administrativa padrão.
+O administrador cadastra apenas motoristas e analistas. A desativação bloqueia
+o acesso e mantém os dados; a reativação volta a permitir login.
 
 Localmente, `npm run dev` na pasta `frontend` encaminha `/api` ao backend em
 `localhost:8000`. Com os dois serviços em HTTP local, use `COOKIE_SECURE=false`

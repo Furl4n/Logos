@@ -14,7 +14,7 @@ export default function Quadro() {
   const { data: user } = useCurrentUser()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [activeColumn, setActiveColumn] = useState<typeof columns[number]['assignment']>('UNASSIGNED')
-  if (user?.role !== 'ANALYST') return <Navigate to="/incidentes" replace />
+  if (!user || user.role === 'DRIVER') return <Navigate to="/incidentes" replace />
   return <>
     <header className="mb-5 shrink-0">
       <h1 className="text-2xl font-medium tracking-tight sm:text-3xl">Quadro de atendimentos</h1>

@@ -21,6 +21,9 @@ e autenticação com JWT. Incidentes possuem listagem com filtros e paginação,
 criação e detalhes com histórico, respeitando o acesso por perfil. O atendimento
 inclui atribuição, transferência, status, criticidade, observações e reabertura,
 com controle de concorrência por versão. O banco local roda com Docker Compose.
+Administradores possuem uma área exclusiva para listar, criar, desativar e
+reativar motoristas e analistas, preservando incidentes e histórico.
+O primeiro administrador é criado pelo terminal; veja [instruções de deploy](docs/deploy.md).
 O deploy usa Vercel Services para frontend e backend no mesmo domínio, com
 PostgreSQL externo. A configuração está no repositório; a publicação e a
 validação online ainda precisam ser concluídas.

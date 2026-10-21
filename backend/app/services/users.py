@@ -10,4 +10,4 @@ def get_drivers(connection: Connection) -> list[UserReference]:
 
 
 def get_analysts(connection: Connection) -> list[UserReference]:
-    return [UserReference(**row) for row in list_by_role(connection, UserRole.ANALYST)]
+    return [UserReference(**row) for row in list_by_role(connection, UserRole.ANALYST, include_admin=True)]

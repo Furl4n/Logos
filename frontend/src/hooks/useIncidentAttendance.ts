@@ -14,7 +14,7 @@ export function useIncidentAttendance() {
   const reopen = useReopenIncident()
 
   async function updateIncident(id: string, input: UpdateIncidentInput) {
-    if (!user || user.role !== 'ANALYST') throw new Error('Acesso exclusivo para analistas.')
+    if (!user || user.role === 'DRIVER') throw new Error('Acesso exclusivo para analistas e administradores.')
     const version = input.version
     switch (input.action) {
       case 'assume': return toIncidentDetail(await assign.mutateAsync({ id, version, analystId: user.id }))

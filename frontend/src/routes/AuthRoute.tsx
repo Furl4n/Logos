@@ -26,6 +26,7 @@ export default function AuthRoute({ publicOnly = false }: { publicOnly?: boolean
       <button type="button" onClick={() => void session.refetch()} className="text-brand-dark underline">Tentar novamente</button>
     </main>
   )
-  if (publicOnly) return session.data ? <Navigate to="/incidentes" replace /> : <Outlet />
+  const home = session.data?.role === 'ADMIN' ? '/usuarios' : '/incidentes'
+  if (publicOnly) return session.data ? <Navigate to={home} replace /> : <Outlet />
   return session.data ? <Outlet /> : <Navigate to="/login" replace />
 }

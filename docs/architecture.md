@@ -48,7 +48,7 @@ Diretórios ainda não criados não representam funcionalidades implementadas; s
 
 O banco de dados escolhido é **PostgreSQL 14 ou superior**. A migration inicial está em `database/migrations/001_create_core_entities.sql` e cria:
 
-- `users`, com os papéis `DRIVER` e `ANALYST`;
+- `users`, com os papéis `DRIVER`, `ANALYST` e `ADMIN`, e indicador `is_active`;
 - `incidents`, incluindo categoria, criticidade, status, versão e `analyst_id`
   opcional para o responsável atual;
 - `incident_history`, uma linha do tempo geral para status, criticidade, atribuição,
@@ -105,7 +105,9 @@ A pasta `database/` não conterá o Compose: ela guarda apenas migrations, seeds
    em transação e com bloqueio contra execuções simultâneas.
 3. Login e consulta do usuário autenticado implementados com JWT de uma hora,
    hash Argon2 e dependências de autenticação/autorização por papel. Usuários
-   são criados por comando administrativo, sem cadastro público.
+   operacionais podem ser criados pela página administrativa; contas ADMIN
+   são criadas pelo terminal, sem cadastro público. A autenticação verifica
+   o estado ativo da conta em cada requisição.
 4. Listagem implementada com filtros, paginação e escopo por perfil. Ordenação
    por criticidade, horário e UUID, com total e página na mesma instrução SQL.
    Criação grava incidente e CREATED atomicamente. Detalhes incluem histórico
