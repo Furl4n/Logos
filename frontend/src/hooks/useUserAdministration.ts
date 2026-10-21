@@ -1,11 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { CreateUserRequest, ManagedUser, UserPage } from '../interfaces/Api'
+import type { CreateUserRequest, ManagedUser, UserPage, UserStatusFilter } from '../interfaces/Api'
 import { api } from '../service/api'
 
-export function useManagedUsers(search: string, page: number) {
+export function useManagedUsers(search: string, page: number, status: UserStatusFilter) {
   return useQuery({
-    queryKey: ['users', 'administration', search, page],
-    queryFn: ({ signal }) => api<UserPage>(`/users?${new URLSearchParams({ search, page: String(page), pageSize: '20' })}`, { signal }),
+    queryKey: ['users', 'administration', search, page, status],
+    queryFn: ({ signal }) => api<UserPage>(`/users?${new URLSearchParams({ search, page: String(page), pageSize: '20', status })}`, { signal }),
   })
 }
 

@@ -28,7 +28,7 @@ export default function IncidentAttendance({ incident }: { incident: Incident })
   const [conflict, setConflict] = useState(false)
   const [observationError, setObservationError] = useState('')
   const closed = isIncidentClosed(incident.status)
-  const canEdit = !closed && user?.role === 'ANALYST' && incident.analystId === user.id
+  const canEdit = !closed && !!user && user.role !== 'DRIVER' && incident.analystId === user.id
   const analystQuery = useAnalysts(transferring && canEdit)
   const analystOptions = (analystQuery.data ?? []).filter(analyst => analyst.id !== user?.id).map(analyst => ({ value: analyst.id, label: analyst.name }))
   const changed = status !== snapshot.status || severity !== snapshot.severity || Boolean(observation.trim())

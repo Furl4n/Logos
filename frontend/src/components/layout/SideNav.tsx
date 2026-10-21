@@ -6,8 +6,8 @@ import { useCurrentUser } from '../../hooks/useAuth'
 export default function SideNav() {
   const { data: user } = useCurrentUser()
   const admin = user?.role === 'ADMIN'
-  const home = admin ? '/usuarios' : '/incidentes'
-  const analyst = user?.role === 'ANALYST'
+  const home = '/incidentes'
+  const analyst = user?.role === 'ANALYST' || admin
   return (
     <>
     <header className="relative z-10 flex items-center justify-between border-b border-line bg-surface px-4 py-2 sm:hidden">
@@ -17,9 +17,10 @@ export default function SideNav() {
       </Link>
       <UserMenu mobile />
     </header>
-    {analyst && <nav aria-label="Navegação principal" className="grid grid-cols-2 gap-1 border-b border-line px-4 py-2 sm:hidden">
+    {analyst && <nav aria-label="Navegação principal" className={`grid ${admin ? 'grid-cols-3' : 'grid-cols-2'} gap-1 border-b border-line px-4 py-2 sm:hidden`}>
       <NavLink to={home} className={({ isActive }) => `flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium ${isActive ? 'bg-brand-soft text-brand-dark' : 'text-muted hover:bg-canvas'}`}><Icon name="grid" size={16} />Incidentes</NavLink>
       <NavLink to="/quadro" className={({ isActive }) => `flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium ${isActive ? 'bg-brand-soft text-brand-dark' : 'text-muted hover:bg-canvas'}`}><BoardIcon />Quadro</NavLink>
+      {admin && <NavLink to="/usuarios" className={({ isActive }) => `flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium ${isActive ? 'bg-brand-soft text-brand-dark' : 'text-muted hover:bg-canvas'}`}><Icon name="users" size={16} />Usuários</NavLink>}
     </nav>}
     <aside className="fixed inset-y-0 left-0 hidden w-19 flex-col border-r border-line bg-surface px-2.5 pt-4 sm:flex xl:w-60 xl:px-4">
       <Link to={home} aria-label="Logos — início" className="mx-auto mb-5 flex items-center gap-2.5 xl:mx-3">
@@ -32,12 +33,13 @@ export default function SideNav() {
       </div>
       <span className="mb-3 hidden px-3 text-xs font-semibold tracking-widest text-muted xl:block">{admin ? 'ADMINISTRAÇÃO' : 'OPERAÇÃO'}</span>
       <nav aria-label="Navegação principal" className="space-y-1">
-        <NavLink to={home} aria-label={admin ? 'Usuários' : 'Incidentes'} title={admin ? 'Usuários' : 'Incidentes'} className={({ isActive }) => `flex items-center justify-center gap-3 rounded-md px-3 py-3 text-sm font-medium xl:justify-start ${isActive ? 'bg-brand-soft text-brand-dark' : 'text-muted hover:bg-canvas'}`}>
-          <Icon name="grid" /><span className="hidden xl:block">{admin ? 'Usuários' : 'Incidentes'}</span>
+        <NavLink to={home} aria-label="Incidentes" title="Incidentes" className={({ isActive }) => `flex items-center justify-center gap-3 rounded-md px-3 py-3 text-sm font-medium xl:justify-start ${isActive ? 'bg-brand-soft text-brand-dark' : 'text-muted hover:bg-canvas'}`}>
+          <Icon name="grid" /><span className="hidden xl:block">Incidentes</span>
         </NavLink>
         {analyst && <NavLink to="/quadro" aria-label="Quadro" title="Quadro" className={({ isActive }) => `flex items-center justify-center gap-3 rounded-md px-3 py-3 text-sm font-medium xl:justify-start ${isActive ? 'bg-brand-soft text-brand-dark' : 'text-muted hover:bg-canvas'}`}>
           <BoardIcon /><span className="hidden xl:block">Quadro</span>
         </NavLink>}
+        {admin && <NavLink to="/usuarios" aria-label="Usuários" title="Usuários" className={({ isActive }) => `flex items-center justify-center gap-3 rounded-md px-3 py-3 text-sm font-medium xl:justify-start ${isActive ? 'bg-brand-soft text-brand-dark' : 'text-muted hover:bg-canvas'}`}><Icon name="users" /><span className="hidden xl:block">Usuários</span></NavLink>}
       </nav>
       <UserMenu />
     </aside>

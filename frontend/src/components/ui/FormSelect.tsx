@@ -145,7 +145,7 @@ export default function FormSelect({ label, ariaLabel, value, options, onChange,
       >
         <span className="inline-flex min-w-0 items-baseline gap-1.5">
           {variant === 'filter' && <span className="shrink-0 text-xs font-medium text-brand-dark">{label}</span>}
-          <span className={`min-w-0 ${wrapLabel ? 'break-words text-left leading-snug' : 'truncate'} ${variant === 'filter' ? 'font-medium' : 'font-normal'} ${selected ? 'text-ink' : 'text-muted'}`}>{selected?.label ?? placeholder}</span>
+          <span className={`min-w-0 ${wrapLabel ? 'break-words text-left leading-snug' : 'truncate'} ${variant === 'filter' ? 'pr-1 font-medium' : 'font-normal'} ${selected ? 'text-ink' : 'text-muted'}`}>{selected?.label ?? placeholder}</span>
         </span>
         <span className={`inline-flex shrink-0 text-muted ${open ? '-rotate-90' : 'rotate-90'}`}><Icon name="arrow" size={16} /></span>
       </button>

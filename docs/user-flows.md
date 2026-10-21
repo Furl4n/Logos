@@ -26,7 +26,8 @@ o tratamento de urgência.
 
 ### Administração de usuários
 
-- Acesso exclusivo de ADMIN em `/usuarios`, com a mesma sidebar, tema e componentes.
+- Gestão exclusiva de ADMIN em `/usuarios`, com a mesma sidebar, tema e componentes.
+- Administradores também acessam Incidentes e Quadro, com as permissões de analista.
 - Lista nome, e-mail, cargo e situação da conta; busca por nome/e-mail e paginação.
 - Cadastro em modal com nome, e-mail, cargo operacional e senha.
 - Desativação e reativação exigem confirmação. Contas administrativas não exibem essas ações.
