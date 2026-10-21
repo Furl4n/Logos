@@ -44,8 +44,8 @@ export default function Usuarios() {
       <Button onClick={() => { setMessage(''); setCreating(true) }}><Icon name="plus" size={17} />Criar usuário</Button>
     </header>
     {message && <div role="status" className="mb-4 flex items-center gap-2 rounded-md border border-success-line px-3 py-2 text-sm text-success"><span>{message}</span><button type="button" aria-label="Fechar confirmação" onClick={() => setMessage('')} className="ml-auto p-1"><Icon name="close" size={16} /></button></div>}
-    <div className="mb-4 flex flex-wrap items-center gap-3">
-      <div className="relative min-w-0 basis-full sm:flex-1 sm:basis-0"><span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted"><Icon name="search" size={18} /></span><input aria-label="Buscar usuários por nome ou e-mail" placeholder="Buscar por nome ou e-mail…" value={search} onChange={event => setSearch(event.target.value)} className="w-full rounded-md border border-line bg-canvas py-3 pr-3 pl-10 text-sm text-ink placeholder:text-muted" /></div>
+    <div className="mb-4 flex items-center gap-3">
+      <div className="relative min-w-0 flex-1"><span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted"><Icon name="search" size={18} /></span><input aria-label="Buscar usuários por nome ou e-mail" placeholder="Buscar por nome ou e-mail…" value={search} onChange={event => setSearch(event.target.value)} className="h-10 w-full rounded-md border border-line bg-canvas pr-3 pl-10 text-sm text-ink placeholder:text-muted" /></div>
       <FormSelect label="Contas" ariaLabel="Filtrar contas por situação" value={accountStatus} onChange={value => { setAccountStatus(value as UserStatusFilter); setPage(1) }} options={[{ value: 'ACTIVE', label: 'Ativas' }, { value: 'INACTIVE', label: 'Desativadas' }, { value: 'ALL', label: 'Todas' }]} />
     </div>
     <section aria-label="Lista de usuários" aria-busy={users.isFetching} className="space-y-2">
