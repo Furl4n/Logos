@@ -19,8 +19,8 @@ export default function LoginForm() {
     const fields = new FormData(event.currentTarget)
     setMessage('')
     try {
-      await login.mutateAsync({ email: String(fields.get('email')).trim(), password: String(fields.get('password')) })
-      navigate('/incidentes', { replace: true })
+      const result = await login.mutateAsync({ email: String(fields.get('email')).trim(), password: String(fields.get('password')) })
+      navigate(result.user.role === 'ADMIN' ? '/usuarios' : '/incidentes', { replace: true })
     } catch (error) {
       setMessage(error instanceof ApiError ? error.message : 'Não foi possível conectar ao servidor. Tente novamente.')
     }

@@ -14,6 +14,7 @@ export default function UserMenu({ mobile = false }: { mobile?: boolean }) {
   const trigger = useRef<HTMLButtonElement>(null)
   const logoutButton = useRef<HTMLButtonElement>(null)
   const panelId = useId()
+  const roleLabel = user?.role === 'ADMIN' ? 'Administrador' : user?.role === 'DRIVER' ? 'Motorista' : 'Analista de operações'
   const initials = user?.name.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('')
 
   useEffect(() => {
@@ -52,7 +53,7 @@ export default function UserMenu({ mobile = false }: { mobile?: boolean }) {
       }}>
       {open && (
         <div id={panelId} className={`absolute z-20 w-56 rounded-lg border border-strong bg-surface p-1.5 shadow-lg ${mobile ? 'top-full right-0 mt-1' : 'bottom-full left-0 mb-1 xl:w-full'}`}>
-          {mobile && <div className="border-b border-line px-3 py-2 text-sm"><p className="break-words font-medium">{user?.name}</p><p className="mt-1 text-xs text-muted">{user?.role === 'DRIVER' ? 'Motorista' : 'Analista de operações'}</p></div>}
+          {mobile && <div className="border-b border-line px-3 py-2 text-sm"><p className="break-words font-medium">{user?.name}</p><p className="mt-1 text-xs text-muted">{roleLabel}</p></div>}
           {error && <p role="alert" className="px-3 py-2 text-sm text-danger">{error}</p>}
           <div className="mb-1.5 flex items-center justify-between gap-2 border-b border-line px-3 py-2"><span className="text-sm font-medium">Tema</span><ThemeSwitcher /></div>
           <button ref={logoutButton} type="button" aria-disabled={leaving} onClick={() => void handleLogout()}
@@ -68,7 +69,7 @@ export default function UserMenu({ mobile = false }: { mobile?: boolean }) {
         <span className="grid size-10 shrink-0 place-items-center rounded-full border-3 border-avatar-line bg-avatar text-xs text-avatar-ink">{initials}</span>
         <span className="hidden min-w-0 flex-1 xl:block">
           <span className="block truncate">{user?.name}</span>
-          <span className="mt-1 block truncate text-xs font-normal text-muted">{user?.role === 'DRIVER' ? 'Motorista' : 'Analista de operações'}</span>
+          <span className="mt-1 block truncate text-xs font-normal text-muted">{roleLabel}</span>
         </span>
         <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className={`hidden shrink-0 text-muted xl:block ${open ? 'rotate-180' : ''}`}><path d="m7 14 5-5 5 5" /></svg>
       </button>

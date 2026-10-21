@@ -4,8 +4,9 @@ import UserMenu from './UserMenu'
 import { useCurrentUser } from '../../hooks/useAuth'
 
 export default function SideNav() {
-  const home = '/incidentes'
   const { data: user } = useCurrentUser()
+  const admin = user?.role === 'ADMIN'
+  const home = admin ? '/usuarios' : '/incidentes'
   const analyst = user?.role === 'ANALYST'
   return (
     <>
@@ -27,12 +28,12 @@ export default function SideNav() {
       </Link>
       <div className="mb-7 hidden items-center gap-2.5 border-b border-line pb-6 text-sm font-medium xl:flex">
         <span className="grid size-9 shrink-0 place-items-center rounded-lg border border-line bg-canvas text-muted"><Icon name="truck" /></span>
-        <div>Central de operações<small className="mt-1 block text-xs font-normal text-muted">Gestão de transporte</small></div>
+        <div>{admin ? 'Administração' : 'Central de operações'}<small className="mt-1 block text-xs font-normal text-muted">Gestão de transporte</small></div>
       </div>
-      <span className="mb-3 hidden px-3 text-xs font-semibold tracking-widest text-muted xl:block">OPERAÇÃO</span>
+      <span className="mb-3 hidden px-3 text-xs font-semibold tracking-widest text-muted xl:block">{admin ? 'ADMINISTRAÇÃO' : 'OPERAÇÃO'}</span>
       <nav aria-label="Navegação principal" className="space-y-1">
-        <NavLink to={home} aria-label="Incidentes" className={({ isActive }) => `flex items-center justify-center gap-3 rounded-md px-3 py-3 text-sm font-medium xl:justify-start ${isActive ? 'bg-brand-soft text-brand-dark' : 'text-muted hover:bg-canvas'}`}>
-          <Icon name="grid" /><span className="hidden xl:block">Incidentes</span>
+        <NavLink to={home} aria-label={admin ? 'Usuários' : 'Incidentes'} title={admin ? 'Usuários' : 'Incidentes'} className={({ isActive }) => `flex items-center justify-center gap-3 rounded-md px-3 py-3 text-sm font-medium xl:justify-start ${isActive ? 'bg-brand-soft text-brand-dark' : 'text-muted hover:bg-canvas'}`}>
+          <Icon name="grid" /><span className="hidden xl:block">{admin ? 'Usuários' : 'Incidentes'}</span>
         </NavLink>
         {analyst && <NavLink to="/quadro" aria-label="Quadro" title="Quadro" className={({ isActive }) => `flex items-center justify-center gap-3 rounded-md px-3 py-3 text-sm font-medium xl:justify-start ${isActive ? 'bg-brand-soft text-brand-dark' : 'text-muted hover:bg-canvas'}`}>
           <BoardIcon /><span className="hidden xl:block">Quadro</span>

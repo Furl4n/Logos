@@ -4,6 +4,8 @@ import Incidentes from '../pages/Incidentes/Index'
 import Login from '../pages/Login/Index'
 import Quadro from '../pages/Quadro/Index'
 import AuthRoute from './AuthRoute'
+import Usuarios from '../pages/Usuarios/Index'
+import RoleRoute from './RoleRoute'
 
 export const routes = createBrowserRouter(
   createRoutesFromElements(
@@ -14,8 +16,13 @@ export const routes = createBrowserRouter(
       <Route index element={<Navigate to="/login" replace />} />
       <Route element={<AuthRoute />}>
         <Route element={<AppLayout />}>
-          <Route path="/incidentes" element={<Incidentes />} />
-          <Route path="/quadro" element={<Quadro />} />
+          <Route element={<RoleRoute />}>
+            <Route path="/incidentes" element={<Incidentes />} />
+            <Route path="/quadro" element={<Quadro />} />
+          </Route>
+          <Route element={<RoleRoute adminOnly />}>
+            <Route path="/usuarios" element={<Usuarios />} />
+          </Route>
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/login" replace />} />

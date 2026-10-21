@@ -1,5 +1,8 @@
 export interface UserReference { id: string; name: string }
-export interface AuthUser extends UserReference { email: string; role: 'DRIVER' | 'ANALYST' }
+export interface AuthUser extends UserReference { email: string; role: 'DRIVER' | 'ANALYST' | 'ADMIN' }
+export interface ManagedUser extends AuthUser { isActive: boolean }
+export interface UserPage { items: ManagedUser[]; total: number; page: number; pageSize: number }
+export interface CreateUserRequest { name: string; email: string; password: string; role: 'DRIVER' | 'ANALYST' }
 export interface LoginRequest { email: string; password: string }
 export interface LoginResponse { expiresIn: number; user: AuthUser }
 export type IncidentSeverity = 'HIGH' | 'MEDIUM' | 'LOW'

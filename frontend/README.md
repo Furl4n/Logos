@@ -16,7 +16,10 @@ Configure `VITE_API_URL` conforme `.env.example` (padrão: `/api/v1`, no mesmo
 domínio). O Vite encaminha `/api` ao backend local em `localhost:8000`.
 Inicie o backend e configure a origem do Vite em
 `FRONTEND_ORIGINS`. Para HTTP local, use `COOKIE_SECURE=false` no backend.
-Contas são criadas pelo comando `python -m app.create_user` no backend.
+Administradores gerenciam contas operacionais em `/usuarios`. A primeira conta
+ADMIN é criada pelo comando `python -m app.create_user --role ADMIN` no backend,
+com os argumentos de nome e e-mail. O login redireciona cada cargo à sua área;
+administradores não acessam o atendimento de incidentes.
 
 `npm run build` verifica TypeScript e gera a versão de produção;
 `npm run lint` executa a análise estática.
