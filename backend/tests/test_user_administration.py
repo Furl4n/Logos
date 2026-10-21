@@ -173,3 +173,11 @@ class UserAdministrationTests(IncidentTestCase):
                 self.assertEqual(result.json()['items'][0]['isActive'], status != 'INACTIVE')
         invalid = self.client.get('/api/v1/users', headers=self.admin_headers, params={"status": "INVALID"})
         self.assertEqual(invalid.status_code, 422)
+
+    def test_empty_user_page_preserves_total_and_handles_large_offset(self):
+        for page in (20, 10**30):
+            response = self.client.get('/api/v1/users', headers=self.admin_headers,
+                                       params={"search": self.marker, "pageSize": 2, "page": page})
+            self.assertEqual(response.status_code, 200, response.text)
+            self.assertEqual(response.json()['total'], 4)
+            self.assertEqual(response.json()['items'], [])

@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from psycopg import Connection
+from psycopg import Connection, sql
 
 from app.models.user import User, UserRole
 
@@ -48,15 +48,29 @@ def create_user(
 def list_managed_users(connection: Connection, search: str, page: int, page_size: int, status: str = "ACTIVE") -> tuple[list[dict], int]:
     escaped = search.strip().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
     pattern = f"%{escaped}%"
-    condition = "WHERE (name ILIKE %s OR email ILIKE %s) AND (%s = 'ALL' OR is_active = %s)"
-    params = (pattern, pattern, status, status == "ACTIVE")
-    total = connection.execute(f"SELECT count(*) AS total FROM users {condition}", params).fetchone()["total"]
+    conditions = []
+    params = []
+    if search.strip():
+        conditions.append(sql.SQL("(name ILIKE %s OR email ILIKE %s)"))
+        params.extend([pattern, pattern])
+    if status != "ALL":
+        conditions.append(sql.SQL("is_active = %s"))
+        params.append(status == "ACTIVE")
+    where = sql.SQL(" AND ").join(conditions) if conditions else sql.SQL("TRUE")
+    # Total e página compartilham um snapshot; não busca ILIKE '%%' sem termo.
     rows = connection.execute(
-        f'''SELECT id, name, email, role, is_active AS "isActive"
-            FROM users {condition} ORDER BY name, id LIMIT %s OFFSET %s''',
-        (*params, page_size, (page - 1) * page_size),
+        sql.SQL('''WITH filtered AS NOT MATERIALIZED (
+            SELECT id, name, email, role, is_active AS "isActive" FROM users WHERE {}
+        ), page AS (
+            SELECT * FROM filtered ORDER BY name, id LIMIT %s OFFSET %s
+        )
+        SELECT total.count AS total, page.*
+        FROM (SELECT count(*) AS count FROM filtered) total
+        LEFT JOIN page ON TRUE ORDER BY page.name, page.id''').format(where),
+        (*params, page_size, min((page - 1) * page_size, 2**63 - 1)),
     ).fetchall()
-    return rows, total
+    return [{key: value for key, value in row.items() if key != "total"}
+            for row in rows if row["id"] is not None], rows[0]["total"]
 
 
 def has_active_assignments(connection: Connection, user_id: UUID) -> bool:

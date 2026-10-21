@@ -56,7 +56,11 @@ O banco de dados escolhido é **PostgreSQL 14 ou superior**. A migration inicial
   atribuições guardam os responsáveis anterior e novo com chaves estrangeiras.
 
 A migration também define validações, chaves estrangeiras e triggers para `updated_at`.
-Índices adicionais ficam para uma etapa posterior.
+Os índices de consulta estão na migration `004_optimize_queries.sql`:
+histórico por incidente/versão, motorista, responsável, fila ativa por prioridade,
+categoria/status, busca parcial por trigramas e listagens de usuários ativos.
+As chaves primárias e UNIQUE já cobrem consulta por UUID e login por e-mail.
+Consulte [medições e decisões de performance](performance.md).
 
 A migration `002_add_incident_code_and_creation_event.sql` adiciona código público
 único gerado por sequência e suporte ao evento CREATED de versão 1. A migration

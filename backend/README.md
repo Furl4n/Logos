@@ -142,7 +142,9 @@ Resposta: `{ "items": [], "page": 1, "pageSize": 100, "total": 0 }`.
 registros autorizados após os filtros, antes da paginação.
 
 Após atualizar o código, execute `python -m app.migrate` para aplicar a migration
-`002`, que adiciona código público e suporte ao evento CREATED.
+`002`, que adiciona código público e suporte ao evento CREATED, e as seguintes.
+A migration `004` adiciona índices e a extensão `pg_trgm` para otimizar as consultas.
+As mudanças de consulta e as medições locais estão em [performance](../docs/performance.md).
 
 Para criar dados fictícios de desenvolvimento, use um motorista já cadastrado:
 

@@ -86,6 +86,7 @@ def list_incidents(
 ) -> tuple[list[dict], int]:
     conditions = []
     parameters = []
+    search_cte = sql.SQL("")
     if user.role == UserRole.DRIVER:
         conditions.append(sql.SQL("i.driver_id = %s"))
         parameters.append(user.id)
@@ -112,37 +113,47 @@ def list_incidents(
         # Os curingas digitados são texto literal, não ampliam a busca.
         term = filters.search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
         pattern = f"%{term}%"
-        conditions.append(sql.SQL("""(
-            i.title ILIKE %s OR i.code ILIKE %s OR d.name ILIKE %s
-            OR i.truck_plate ILIKE %s OR i.location ILIKE %s
-        )"""))
-        parameters.extend([pattern] * 5)
+        # Separa a busca de nomes da busca no incidente para permitir os índices
+        # de ambas as tabelas. UNION impede duplicatas quando vários campos batem.
+        search_cte = sql.SQL("""search_matches AS (
+            SELECT id FROM incidents
+            WHERE title ILIKE %s OR code ILIKE %s
+               OR truck_plate ILIKE %s OR location ILIKE %s
+            UNION
+            SELECT i.id FROM incidents i
+            JOIN users d ON d.id = i.driver_id WHERE d.name ILIKE %s
+        ), """)
+        conditions.append(sql.SQL("i.id IN (SELECT id FROM search_matches)"))
+        parameters = [pattern] * 5 + parameters
 
     where = sql.SQL(" AND ").join(conditions) if conditions else sql.SQL("TRUE")
     direction = sql.SQL("DESC" if filters.timeOrder == "newest" else "ASC")
-    ordering = sql.SQL("""
-        CASE severity WHEN 'HIGH' THEN 0 WHEN 'MEDIUM' THEN 1 ELSE 2 END,
-        occurred_at {}, id ASC
-    """).format(direction)
+
+    def ordering(alias: str) -> sql.Composed:
+        return sql.SQL("""
+            CASE {a}.severity WHEN 'HIGH' THEN 0 WHEN 'MEDIUM' THEN 1 ELSE 2 END,
+            {a}.occurred_at {direction}, {a}.id ASC
+        """).format(a=sql.Identifier(alias), direction=direction)
+
     # Total e página são lidos na mesma instrução/snapshot, inclusive página vazia.
     query = sql.SQL("""
-        WITH filtered AS (
+        WITH {search_cte}filtered AS NOT MATERIALIZED (
             SELECT i.id, i.code, i.title, i.category, i.severity, i.status,
-                   i.driver_id, d.name AS driver_name,
-                   i.analyst_id, a.name AS analyst_name,
+                   i.driver_id, i.analyst_id,
                    i.truck_plate, i.location, i.occurred_at, i.reported_at, i.version
             FROM incidents i
-            JOIN users d ON d.id = i.driver_id
-            LEFT JOIN users a ON a.id = i.analyst_id
-            WHERE {}
+            WHERE {where}
         ), page AS (
-            SELECT * FROM filtered ORDER BY {} LIMIT %s OFFSET %s
+            SELECT * FROM filtered p ORDER BY {page_order} LIMIT %s OFFSET %s
         )
-        SELECT total.count AS total, page.*
+        SELECT total.count AS total, page.*, d.name AS driver_name, a.name AS analyst_name
         FROM (SELECT COUNT(*) AS count FROM filtered) total
         LEFT JOIN page ON TRUE
-        ORDER BY {}
-    """).format(where, ordering, ordering)
+        LEFT JOIN users d ON d.id = page.driver_id
+        LEFT JOIN users a ON a.id = page.analyst_id
+        ORDER BY {result_order}
+    """).format(search_cte=search_cte, where=where,
+                page_order=ordering("p"), result_order=ordering("page"))
     # Páginas muito além do fim continuam vazias sem exceder BIGINT no PostgreSQL.
     offset = min((filters.page - 1) * filters.pageSize, 2**63 - 1)
     parameters.extend([filters.pageSize, offset])
