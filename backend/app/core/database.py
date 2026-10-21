@@ -6,8 +6,9 @@ from psycopg.rows import dict_row
 from app.core.config import get_settings
 
 
-def connect_database() -> psycopg.Connection:
-    url = get_settings().database_url
+def connect_database(*, direct: bool = False) -> psycopg.Connection:
+    settings = get_settings()
+    url = (settings.database_url_unpooled if direct else None) or settings.database_url
     if url is None or not url.get_secret_value().strip():
         raise ValueError("Configure DATABASE_URL no backend/.env.")
 

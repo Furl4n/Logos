@@ -10,3 +10,5 @@ __pycache__/
 
 # Metadados locais do deploy e do vercel dev
 .vercel/
+.neon
+node_modules/

@@ -47,6 +47,21 @@ na lista permitida, mesmo quando frontend e API compartilham o domínio.
 
 ## Preparar o banco
 
+O repositório está vinculado ao Neon por `.neon` (ignorado pelo Git).
+Com a CLI autenticada, execute `neon deploy` na raiz para aplicar `neon.ts`
+e gerar `.env.local` com `DATABASE_URL` e `DATABASE_URL_UNPOOLED`.
+O backend lê primeiro `backend/.env` e depois a `.env.local` da raiz;
+variáveis do processo têm precedência sobre ambos. Enquanto esse arquivo
+estiver presente, os comandos locais usam o banco Neon vinculado, inclusive
+se `backend/.env` ainda apontar para o Docker. Para voltar ao banco local,
+mova `.env.local` para fora do repositório ou forneça `DATABASE_URL`
+explicitamente no processo. Confira também `DATABASE_URL_UNPOOLED` antes
+de executar migrations: elas usam essa conexão direta quando disponível.
+
+Mantenha as credenciais no arquivo ignorado e cadastre `DATABASE_URL`
+separadamente na Vercel; `neon deploy` não configura as variáveis da Vercel.
+O comando `npm run build` na raiz delega o build ao frontend.
+
 Crie o projeto PostgreSQL no Neon e mantenha o SSL da string fornecida. Nenhum
 dado local é enviado automaticamente. Execute os comandos a partir de `backend`,
 com o ambiente Python ativado e `DATABASE_URL` apontando explicitamente para o

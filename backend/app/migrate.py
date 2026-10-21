@@ -17,7 +17,7 @@ def migrate() -> list[str]:
         raise ValueError("Nenhuma migration encontrada em database/migrations.")
 
     applied = []
-    with connect_database() as connection:
+    with connect_database(direct=True) as connection:
         # Serializa execuções simultâneas até o commit ou rollback.
         connection.execute("SELECT pg_advisory_xact_lock(20261019)")
         connection.execute("""
