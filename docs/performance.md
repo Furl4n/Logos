@@ -1,8 +1,11 @@
 # Consultas e índices
 
 A migration `004_optimize_queries.sql` adiciona índices para as consultas usadas
-pela interface. A validação foi feita no PostgreSQL 17 local do Docker; nenhuma
-alteração foi aplicada automaticamente ao Neon de produção.
+pela interface. A validação foi feita no PostgreSQL 17 local do Docker. Em
+21/10/2026, a migration também foi aplicada explicitamente ao Neon de produção:
+os nove índices foram confirmados válidos, `pg_trgm` foi habilitado e ANALYZE
+foi executado. As contagens de usuários, incidentes e histórico foram preservadas.
+Os tempos abaixo são exclusivamente da medição local, não do ambiente de produção.
 
 ## Consultas
 

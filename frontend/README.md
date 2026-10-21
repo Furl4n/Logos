@@ -1,14 +1,14 @@
 # Frontend — Logos
 
 React, TypeScript, Vite e Tailwind CSS para a central de incidentes.
-A estrutura segue o padrão do ControlaPET: páginas modularizadas, hooks por
+A estrutura usa páginas modularizadas, hooks por
 domínio, contratos em interfaces e acesso HTTP em service.
 
 ## Executar
 
 ```bash
 cd frontend
-npm install
+npm ci
 npm run dev
 ```
 
@@ -37,8 +37,10 @@ src/
 ├── interfaces/       # contratos da API e tipos de apresentação
 ├── pages/
 │   ├── Login/
-│   └── Incidentes/   # coordenação, filtros, cabeçalho e lista
-├── routes/           # roteador e proteção da sessão
+│   ├── Incidentes/   # coordenação, filtros, cabeçalho e lista
+│   ├── Quadro/       # listas de atendimento por responsável
+│   └── Usuarios/     # cadastro e gestão administrativa de contas
+├── routes/           # roteador, proteção da sessão e acesso por cargo
 ├── service/          # fetch, React Query e tradução dos contratos
 └── styles/           # Tailwind, tema e estilos globais
 ```
@@ -66,8 +68,13 @@ O HTML aplica o tema antes de carregar o React para evitar um clarão na abertur
 `/login` usa `useLogin`. O backend define um cookie HttpOnly; o frontend envia
 `credentials: include` e o cabeçalho `X-CSRF-Protection` nas alterações.
 O token não é disponibilizado ao JavaScript. Login e logout limpam o cache.
-`AuthRoute` consulta `/auth/me` para restaurar a sessão e proteger `/incidentes`.
+`AuthRoute` consulta `/auth/me` para restaurar a sessão e proteger as páginas.
+`RoleRoute` restringe `/usuarios` ao administrador; o quadro aceita analistas e
+administradores. Motoristas e analistas entram em `/incidentes`; administradores,
+em `/usuarios`, com navegação também para incidentes e quadro.
 Falhas de conexão oferecem nova tentativa; sessão ausente direciona ao login.
+Ao receber `401` de uma operação protegida, o frontend limpa a sessão e retorna
+ao login. Logout remove o cookie; não revoga cópias do JWT no servidor.
 O menu da conta mostra o usuário real e permite sair.
 
 ## Fila e registro
@@ -121,11 +128,29 @@ Requisições enviam a versão lida; conflitos HTTP 409 atualizam o cache com
 enquanto consulta os dados atuais e depois permite uma nova tentativa manual com
 a versão atualizada, preservando o rascunho. Não há reenvio automático.
 Durante o envio, os campos são bloqueados. Sucessos atualizam a fila e o histórico.
-Transferências consultam analistas reais, excluindo o usuário atual.
+Transferências consultam analistas e administradores ativos, excluindo o usuário atual.
 `ApiError` expõe status HTTP, código, erros de campo e ocorrência em conflito.
 
 O contexto local e os mocks antigos foram removidos após concluir a integração.
 Para popular o banco de desenvolvimento, consulte `app.seed_incidents` no backend.
+
+## Gestão de usuários
+
+`/usuarios` usa `useUserAdministration` e a API administrativa. A busca por nome
+ou e-mail aguarda 300 ms; o filtro Contas oferece Ativas (inicial), Desativadas e
+Todas. Filtros reiniciam a paginação, com até 20 contas por página. Busca e seleção
+mantêm a mesma altura e permanecem lado a lado.
+
+O cadastro reutiliza Modal, FormField e FormSelect. Aceita somente motorista ou
+analista, com senha de 8–128 caracteres. Contas administrativas são criadas pelo
+terminal. Após sucesso, a página mostra contas ativas e atualiza a listagem.
+Desativar e reativar exige confirmação. A API bloqueia desativação de analista
+com atendimento ativo e exibe a orientação para transferir os casos.
+
+Cards distribuem nome/e-mail e ações em duas linhas nas telas menores; em telas
+maiores, alinham os dados na mesma linha. Nomes longos são truncados e e-mails
+podem quebrar para não transbordar. Os estados de carregamento, erro e vazio
+seguem o padrão da listagem de incidentes.
 
 ## Telas menores
 

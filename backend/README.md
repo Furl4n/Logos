@@ -37,6 +37,8 @@ Depois, siga os comandos de ativação e instalação acima.
 `APP_NAME` define o nome exibido na documentação. Variáveis do processo têm
 precedência sobre o arquivo `backend/.env`, que é opcional. Reinicie o servidor
 ao alterar configurações. O ambiente virtual e arquivos `.env` não são versionados.
+A `.env.local` da raiz não é lida automaticamente pelo backend; guarda as conexões
+Neon para comandos remotos explícitos. Veja [deploy](../docs/deploy.md).
 
 ## PostgreSQL local com Docker
 
@@ -77,7 +79,9 @@ antes de iniciar a API; elas não rodam automaticamente ao subir o container ou 
 Use um banco vazio na primeira execução: bancos inicializados manualmente não
 são adotados pelo comando.
 
-`app/core/database.py` centraliza a conexão, com timeout de cinco segundos.
+`app/core/database.py` centraliza a conexão, com timeout de conexão de cinco segundos
+(não é um limite de duração das consultas). A API usa `DATABASE_URL`; migrations
+preferem `DATABASE_URL_UNPOOLED` quando disponível e usam `DATABASE_URL` como fallback.
 A dependência `get_database` fornece uma conexão por requisição, confirma a
 transação no sucesso e reverte em caso de erro, sempre fechando a conexão.
 As rotas de autenticação já usam essa dependência.
@@ -97,7 +101,9 @@ trocar seu valor invalida os tokens anteriores.
 Senhas são armazenadas com hash Argon2. Tokens JWT usam HS256 e expiram em uma
 hora. E-mails são normalizados com trim e minúsculas; senhas são preservadas
 exatamente como digitadas. As respostas não incluem senha ou hash.
-Não há cadastro público, refresh token nem revogação individual nesta etapa.
+Não há cadastro público, refresh token nem lista de revogação individual de JWT.
+Contas inativas são rejeitadas a cada requisição; reativar uma conta também volta
+a permitir tokens anteriores ainda dentro do prazo de validade.
 
 Crie usuários pelo terminal com a `.venv` ativa:
 
@@ -114,6 +120,18 @@ continuam sendo criadas somente pelo terminal. A migration
 execute `python -m app.migrate` antes de usar a versão atualizada da API.
 Contas desativadas não podem autenticar ou usar sessões existentes. Analistas
 com atendimentos ativos precisam transferi-los antes de serem desativados.
+Administradores também possuem todas as permissões de atendimento dos analistas,
+inclusive receber transferências, respeitando responsável e versão.
+
+Rotas exclusivas de ADMIN:
+
+- `GET /api/v1/users`: lista paginada com busca por nome/e-mail e `status`
+  (`ACTIVE`, `INACTIVE`, `ALL`; padrão `ACTIVE`), `page` e `pageSize` (até 100).
+- `POST /api/v1/users`: recebe nome, e-mail, senha de 8–128 caracteres e cargo
+  DRIVER/ANALYST. E-mail duplicado retorna `409 EMAIL_ALREADY_EXISTS`.
+- `PATCH /api/v1/users/{userId}/status`: desativa/reativa com `isActive` booleano.
+  Conta administrativa é protegida; analista com atendimento ativo retorna
+  `409 ACTIVE_ASSIGNMENTS` até transferir os casos.
 
 A senha é solicitada sem aparecer na tela e deve ter pelo menos oito caracteres.
 O comando confirma a senha e rejeita e-mails duplicados; não altera usuários existentes.
@@ -130,7 +148,8 @@ Bearer continua aceito para clientes externos, mas o login não expõe JWT em JS
 `GET /api/v1/incidents` exige autenticação. Analistas consultam toda a operação;
 motoristas recebem apenas os próprios incidentes, com escopo imposto no servidor.
 
-Filtros: `search`, `severity`, `category`, `status`, `timeOrder`, `page` e `pageSize`.
+Filtros: `search`, `severity`, `category`, `status`, `assignment`, `timeOrder`, `page` e `pageSize`.
+`assignment` aceita `ALL`, `MINE`, `UNASSIGNED`, `OTHERS`; motoristas só usam `ALL`.
 Os filtros combinam com AND. Por padrão, retorna incidentes ativos (OPEN e
 UNDER_INVESTIGATION), primeira página com até 100 registros e horário decrescente.
 A criticidade sempre vem antes do horário; UUID desempata registros com mesma data.
@@ -160,11 +179,11 @@ Os títulos têm o prefixo `[Exemplo local]`.
 
 ## Criação, detalhes e seleção de motorista
 
-- `GET /api/v1/users/drivers`: somente analistas; lista motoristas como `{ id, name }`,
+- `GET /api/v1/users/drivers`: analistas e administradores; lista motoristas ativos como `{ id, name }`,
   ordenados por nome e UUID, para preencher o formulário.
 - `POST /api/v1/incidents`: registra a ocorrência e retorna `201` com o incidente
   completo e cabeçalho `Location`. Motorista omite `driverId`; analista deve
-  informar o UUID de um motorista existente. Ambos podem escolher a criticidade.
+  informar o UUID de um motorista ativo. Ambos podem escolher a criticidade.
 - `GET /api/v1/incidents/{incidentId}`: retorna os detalhes e o histórico;
   motorista consulta apenas ocorrência própria e analista consulta qualquer uma.
   Ocorrência alheia ao motorista recebe o mesmo `404` de uma inexistente.
@@ -198,8 +217,8 @@ separada. A consulta de detalhes lê incidente e eventos no mesmo snapshot.
 
 ## Atendimento e concorrência
 
-- `GET /api/v1/users/analysts`: consulta de analistas para transferência, com
-  somente `{ id, name }`, restrita a analistas.
+- `GET /api/v1/users/analysts`: consulta de analistas e administradores ativos
+  para transferência, com somente `{ id, name }`, acessível a ambos os cargos.
 - `PATCH /api/v1/incidents/{incidentId}`: recebe `status`, `severity`, `version`
   e `observation` opcional. Somente o responsável altera um atendimento ativo.
 - `PATCH /api/v1/incidents/{incidentId}/assignee`: recebe `analystId` e `version`.
@@ -221,8 +240,9 @@ atuais sem observação, a API retorna o estado sem alterar versão ou timestamp
 
 Versão desatualizada retorna `409`, `code: "VERSION_CONFLICT"` e `currentIncident`
 com os detalhes atualizados. Esse retorno só é fornecido após verificar acesso
-ao recurso. O frontend deverá preservar o rascunho e oferecer recarregar a
-ocorrência antes de tentar novamente. Não há repetição automática da operação.
+ao recurso. O frontend preserva o rascunho, avisa que a alteração não foi salva e
+atualiza os dados antes de permitir uma nova tentativa manual. Não há repetição
+automática da operação.
 
 ## Validação do backend
 
@@ -238,11 +258,11 @@ usuários e incidentes temporários. Os testes comuns revertem sua transação.
 Os testes concorrentes usam conexões independentes, confirmam seus próprios dados
 temporários e depois removem apenas os UUIDs que criaram. Sequências podem ter
 lacunas, inclusive após rollback.
-Cobrem os dois perfis, normalização de e-mail, preservação da senha, erros de
+Cobrem os três perfis, normalização de e-mail, preservação da senha, erros de
 validação, credenciais inválidas, tokens inválidos/expirados e autorização por perfil.
 Também cobrem filtros, busca, paginação acima de 100 registros, desempate por UUID,
 isolamento entre motoristas e o comando de dados de exemplo.
-Criação e detalhes são validados para os dois perfis, incluindo autoria, campos
+Criação e detalhes são validados para motoristas, analistas e administradores, incluindo autoria, campos
 inválidos, agrupamento do histórico, seleção de motorista e rollback quando o
 registro do histórico falha. Há também uma verificação de falha na finalização da
 transação para garantir que a API não envie sucesso antecipadamente.
@@ -252,6 +272,11 @@ Três cenários usam requisições HTTP simultâneas e conexões independentes:
 dois analistas assumindo, duas abas adicionando observações e transferência
 concorrente com uma atualização. Em cada um, uma operação vence e outra recebe
 `409` com o mesmo estado da resposta vencedora.
+Gestão de usuários cobre autorização administrativa, cadastro, senha com hash,
+duplicidade, desativação/reativação, bloqueio de sessão de inativos, transferência
+para administradores, filtros de situação e contagem em páginas vazias/extremas.
+A última execução local em 21/10/2026 aprovou 78 testes.
+Execute contra o Docker ou banco isolado; a suíte não deve apontar para produção.
 
 ## Organização
 
@@ -263,4 +288,5 @@ concorrente com uma atualização. Em cada um, uma operação vence e outra rece
 - `app/repositories`: acesso ao banco de dados.
 - `app/main.py`: criação e configuração da aplicação.
 
-Integração com o frontend e deploy são as próximas etapas.
+A API já está integrada ao frontend e publicada na Vercel com PostgreSQL no Neon.
+Links e contas de avaliação estão no [README principal](../README.md).

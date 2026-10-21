@@ -1,12 +1,12 @@
-# Fluxos e planejamento da interface
+# Fluxos da interface
 
 ## Princípio de design
 
-A central do analista usará uma **lista vertical de cards compactos**, e não
+A central do analista usa uma **lista vertical de cards compactos**, e não
 uma tabela. Esse formato mantém o contexto de cada ocorrência, favorece a
 leitura sob pressão e se adapta naturalmente a telas menores.
 
-Os cards serão ordenados por criticidade (Alta, Média, Baixa) e, dentro de cada
+Os cards são ordenados por criticidade (Alta, Média, Baixa) e, dentro de cada
 grupo, pelo incidente mais recente por padrão. O analista pode inverter a ordem
 temporal dentro dos grupos. Os grupos têm cabeçalhos e contagens próprios.
 
@@ -15,7 +15,7 @@ ficam disponíveis no filtro de status. A fila aparece diretamente após os filt
 com as ocorrências de alta criticidade no primeiro grupo. Limpar filtros retorna
 à visão de ativos.
 
-Os cards ativos de alta criticidade usam faixa e borda vermelhas, com fundo branco.
+Os cards ativos de alta criticidade usam faixa e borda vermelhas, com fundo do tema.
 O cabeçalho do grupo identifica a criticidade por ícone e texto; não há selo vermelho
 Alta após o título. Todos os títulos usam o mesmo tamanho, peso e cor padrão.
 O tempo decorrido mantém destaque nos incidentes urgentes para
@@ -29,6 +29,8 @@ o tratamento de urgência.
 - Gestão exclusiva de ADMIN em `/usuarios`, com a mesma sidebar, tema e componentes.
 - Administradores também acessam Incidentes e Quadro, com as permissões de analista.
 - Lista nome, e-mail, cargo e situação da conta; busca por nome/e-mail e paginação.
+- Filtro Contas: Ativas (inicial), Desativadas ou Todas. Busca e filtro ficam
+  lado a lado, com a mesma altura; alterações reiniciam a paginação.
 - Cadastro em modal com nome, e-mail, cargo operacional e senha.
 - Desativação e reativação exigem confirmação. Contas administrativas não exibem essas ações.
 - Desativação de analista com atendimento ativo mostra orientação para transferir os casos.
@@ -40,7 +42,9 @@ o tratamento de urgência.
 - Após sucesso, motoristas e analistas seguem para `/incidentes`; administradores,
   para `/usuarios`. As rotas validam o perfil também ao acessar pela URL.
 - Exibe erro de credenciais sem revelar qual campo está incorreto.
-- Sessão expirada exige novo login. Sair invalida a sessão no navegador e no backend.
+- Sessão expirada exige novo login. Sair remove o cookie no navegador e limpa o
+  cache; não revoga cópias ainda válidas do JWT. Contas inativas são bloqueadas
+  pelo backend a cada chamada, mesmo com um token anterior.
 
 ### 2. Incidentes — visão do motorista
 
@@ -71,7 +75,8 @@ incidente na lista correspondente.
 ### 4. Incidentes — visão do analista
 
 - Lista todos os incidentes em cards compactos.
-- Barra com busca, criticidade, categoria, status e ordenação temporal.
+- Barra com busca, responsável, ordenação temporal e botão Filtros.
+- Painel de filtros com criticidade, categoria e status; aplicação ao confirmar.
 - Botão para limpar filtros ativos.
 - Botão para registrar incidente em nome de um motorista.
 - Clique no card abre um painel lateral no desktop ou uma tela/modal no mobile.
@@ -116,7 +121,7 @@ público na apresentação. Títulos longos são truncados com reticências.
 
 ## Estados da interface
 
-- **Carregando:** skeletons ou indicadores na lista e no detalhe.
+- **Carregando:** indicadores de texto na lista e no detalhe, com atributos de estado.
 - **Vazio:** mensagem específica para ausência de incidentes ou resultado sem
   correspondência aos filtros, com ação de limpar filtros quando aplicável.
 - **Erro:** mensagem clara, manutenção dos dados já visíveis quando possível e

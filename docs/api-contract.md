@@ -98,8 +98,10 @@ Não há cadastro público, refresh token ou revogação de token neste contrato
 
 ### `GET /auth/me`
 
-Retorna `200` com usuário autenticado, restaurando a sessão e a visão da página
-única `/incidentes`. Token ausente, inválido ou expirado retorna `401`.
+Retorna `200` com usuário autenticado, restaurando a sessão e as permissões do
+perfil. Motoristas e analistas entram em `/incidentes`; administradores, em
+`/usuarios`, podendo também acessar incidentes e quadro. Token ausente, inválido
+ou expirado retorna `401`.
 Ao expirar, o front limpa o cache e solicita login.
 Contas desativadas não podem fazer login e recebem `401` inclusive com JWT
 previamente emitido. A reativação restaura o acesso, incluindo tokens ainda válidos.
@@ -194,12 +196,13 @@ Recebe `title`, `description`, `category`, `severity`, `truckPlate`, `location`,
 | `truckPlate` | Obrigatório, não vazio, até 10 caracteres; trim e maiúsculas; aceita identificador além de placa |
 | `routeCode` | Opcional, até 50 caracteres após trim; omitido, `null` ou vazio vira `null` |
 | `occurredAt` | Data válida com fuso, não futura em relação ao servidor |
-| `driverId` | UUID de DRIVER existente, obrigatório para analista |
+| `driverId` | UUID de DRIVER ativo, obrigatório para analista ou administrador |
 
 - Motorista é associado ao usuário autenticado; enviar `driverId` nesse perfil
   retorna `422`. A integração omite esse campo para motoristas autenticados.
 - Campos desconhecidos retornam `422`, inclusive status, responsável, código,
-  versão e datas geradas pelo servidor. A mesma rejeição vale para os outros corpos e filtros.
+  versão e datas geradas pelo servidor. A mesma rejeição vale para os outros corpos
+  e os filtros de incidentes.
 - Servidor define OPEN, responsável nulo, versão 1, código, `reportedAt`,
   `createdAt` e `updatedAt`, e grava o evento de criação.
 - Retorna `201` com incidente completo e `Location: /api/v1/incidents/{id}`.
@@ -240,7 +243,7 @@ qualquer atualização comum, inclusive do responsável.
 
 Somente analistas. Recebe `{ "analystId": "UUID", "version": 4 }`.
 Sem responsável, só o próprio analista assume; passa a UNDER_INVESTIGATION.
-Com responsável, só ele transfere para outro ANALYST existente, mantendo o status.
+Com responsável, só ele transfere para outro ANALYST ou ADMIN ativo, mantendo o status.
 Não permite desatribuição, transferência para si mesmo ou ação em encerrados.
 Assunção registra atribuição e mudança de status, se houver, na mesma operação.
 
@@ -265,7 +268,9 @@ recebe `409` e pode recarregar; com a versão atual, não ser responsável gera 
 
 Conflito: `409`, `detail` legível, `code: "VERSION_CONFLICT"` e `currentIncident`
 no formato completo. Só devolver o estado a quem pode consultar a ocorrência.
-O front preserva o rascunho e oferece recarregar explicitamente antes de nova tentativa.
+O front preserva o rascunho, informa que a alteração não foi salva e atualiza os
+dados atuais. O envio fica bloqueado durante a atualização; depois, permite uma
+nova tentativa manual com a versão atualizada, sem reenvio automático.
 
 ## Erros
 
@@ -278,8 +283,11 @@ O front usa `code`, não compara mensagens. Falhas internas não expõem SQL ou 
 | `400` | `INVALID_JSON` | JSON malformado |
 | `401` | `INVALID_CREDENTIALS` / `UNAUTHENTICATED` | Login inválido / token ausente, inválido ou expirado |
 | `403` | `FORBIDDEN` | Perfil ou responsável sem permissão |
-| `404` | `NOT_FOUND` | Incidente inexistente ou inacessível ao motorista |
+| `403` | `CSRF_REJECTED` | Origem ou cabeçalho de proteção inválido/ausente |
+| `404` | `NOT_FOUND` | Incidente inexistente/inacessível ao motorista ou conta inexistente na gestão |
 | `409` | `VERSION_CONFLICT` | Versão desatualizada em qualquer atualização do atendimento |
+| `409` | `EMAIL_ALREADY_EXISTS` | E-mail já cadastrado |
+| `409` | `ACTIVE_ASSIGNMENTS` | Desativação de analista com atendimento ativo |
 | `422` | `VALIDATION_ERROR` | Campos, parâmetros, enums ou UUIDs inválidos; usuário alvo inexistente ou com papel incorreto |
 | `422` | `INVALID_STATE` | Alteração em encerrado, reabertura de ativo ou transferência para si mesmo |
 | `500` | `INTERNAL_ERROR` | Falha inesperada, sem alteração parcial |
@@ -293,5 +301,7 @@ O front usa `code`, não compara mensagens. Falhas internas não expõem SQL ou 
   apresenta o código público. A paginação usa até 100 registros por página.
 - A concorrência é controlada pela versão do incidente; conflitos retornam `409`
   com `currentIncident`, que permite atualizar a interface antes de uma nova tentativa.
-- Não há endpoints de cadastro, exclusão, edição geral, histórico separado ou
-  observações separadas: os fluxos atuais não os exigem.
+- Cadastro de usuários é exclusivo de ADMIN; não há inscrição pública.
+- Não há exclusão de incidentes, edição geral após registro, histórico separado ou
+  observações separadas. A ausência de exclusão é uma limitação frente à menção
+  a CRUD no desafio; não representa uma operação já implementada.

@@ -4,7 +4,7 @@
 
 Manter frontend, backend, banco de dados e documentação organizados em um monorepo simples. A estrutura deve favorecer leitura rápida por avaliadores e permitir que cada camada evolua sem misturar responsabilidades.
 
-## Estrutura definida
+## Estrutura atual
 
 ```text
 ps-autoU/
@@ -20,15 +20,17 @@ ps-autoU/
 │   │   └── migrate.py       # execução das migrations SQL
 │   ├── tests/
 │   ├── requirements.txt
+│   ├── requirements-dev.txt
 │   └── .env.example
 ├── frontend/                # React + TypeScript + Vite + Tailwind CSS
 │   └── src/
 │       ├── components/      # layout, ui e componentes por domínio
 │       ├── hooks/           # estado e lógica das telas
+│       ├── contexts/        # tema compartilhado
 │       ├── interfaces/      # tipos e contratos
 │       ├── pages/           # telas em Nome/Index.tsx
 │       ├── routes/          # roteador, páginas e layout compartilhado
-│       ├── service/         # dados de exemplo; futuramente acesso à API
+│       ├── service/         # cliente HTTP, cache e tradução dos contratos
 │       └── styles/          # base do Tailwind e tema visual
 ├── database/
 │   └── migrations/          # migrations e scripts exclusivos do banco
@@ -36,17 +38,24 @@ ps-autoU/
 │   ├── requirements.md
 │   ├── architecture.md
 │   ├── api-contract.md
-│   └── user-flows.md
+│   ├── user-flows.md
+│   ├── deploy.md
+│   └── performance.md
 ├── README.md                # ponto de entrada do repositório
 ├── .gitignore               # ambientes locais e arquivos gerados
+├── vercel.json              # frontend e backend no mesmo domínio
+├── neon.ts                  # configuração do PostgreSQL no Neon
+├── package.json             # dependências da CLI/config e build delegado
 └── docker-compose.yml       # PostgreSQL local
 ```
 
-Diretórios ainda não criados não representam funcionalidades implementadas; são apenas a organização planejada para as próximas etapas.
+O frontend usa páginas modularizadas, hooks por domínio e contratos TypeScript.
+As regras de negócio e permissões permanecem no backend, independentemente da interface.
 
 ## Persistência
 
-O banco de dados escolhido é **PostgreSQL 14 ou superior**. A migration inicial está em `database/migrations/001_create_core_entities.sql` e cria:
+O ambiente local usa PostgreSQL 17 no Docker e produção usa PostgreSQL 18 no Neon.
+As migrations em `database/migrations/` definem:
 
 - `users`, com os papéis `DRIVER`, `ANALYST` e `ADMIN`, e indicador `is_active`;
 - `incidents`, incluindo categoria, criticidade, status, versão e `analyst_id`
@@ -55,7 +64,9 @@ O banco de dados escolhido é **PostgreSQL 14 ou superior**. A migration inicial
   observações e reaberturas. Observações são novas linhas com autor e horário;
   atribuições guardam os responsáveis anterior e novo com chaves estrangeiras.
 
-A migration também define validações, chaves estrangeiras e triggers para `updated_at`.
+A migration `001` define as entidades, validações, chaves estrangeiras e triggers
+para `updated_at`. A `003` adiciona o papel ADMIN e `users.is_active`, mantendo as
+contas existentes ativas. As migrations já aplicadas são preservadas.
 Os índices de consulta estão na migration `004_optimize_queries.sql`:
 histórico por incidente/versão, motorista, responsável, fila ativa por prioridade,
 categoria/status, busca parcial por trigramas e listagens de usuários ativos.
@@ -101,7 +112,23 @@ Sua containerização poderá ser adicionada depois.
 
 A pasta `database/` não conterá o Compose: ela guarda apenas migrations, seeds e scripts específicos do banco.
 
-## Próximas etapas
+## Bibliotecas e decisões
+
+- FastAPI expõe as rotas e o OpenAPI; Pydantic valida entradas e Pydantic Settings
+  lê a configuração. Uvicorn executa a API localmente.
+- Psycopg 3 executa SQL parametrizado. Repositories concentram o SQL; services
+  aplicam permissões, estado do atendimento e transações.
+- PyJWT assina sessões de uma hora e pwdlib/Argon2 protege as senhas. O navegador
+  recebe um cookie HttpOnly; autorização consulta papel e conta ativa a cada chamada.
+- React/TypeScript e Vite compõem o frontend; Tailwind usa tokens semânticos para
+  identidade visual e tema. React Router organiza rotas e restrições de acesso.
+- TanStack Query coordena consultas, cache, invalidação e estado de envio. Consultas
+  podem repetir uma vez após falhas de rede/servidor; mutações não são repetidas
+  automaticamente para evitar duplicação de operações.
+- O PostgreSQL local fica no Docker; Vercel Services publica frontend e API no mesmo
+  domínio, e Neon fornece o banco externo. Não há migração automática no build.
+
+## Funcionalidades implementadas
 
 1. Estrutura inicial e ambiente Python configurados com FastAPI, Uvicorn e Pydantic Settings.
 2. Conexão PostgreSQL configurada com Psycopg 3 e `DATABASE_URL`. O comando
@@ -121,5 +148,13 @@ A pasta `database/` não conterá o Compose: ela guarda apenas migrations, seeds
    e histórico atômico. Consultas auxiliares de motoristas e analistas disponíveis.
 5. Frontend integrado à autenticação, listagem, filtros, registro e atendimento;
    dados locais e seletor temporário de perfil removidos.
-6. Validar os fluxos completos no navegador; depois, expandir a containerização
-   das aplicações e configurar o deploy.
+6. Deploy em Vercel Services com PostgreSQL no Neon. Docker local isolado das
+   credenciais remotas; migrations executadas explicitamente na conexão desejada.
+
+## Limites conhecidos
+
+Não há exclusão de incidentes, edição geral após registro, atualização em tempo
+real, cadastro público ou refresh token. Contagem exata e paginação por OFFSET
+continuam tendo custo crescente com volume; ver [performance](performance.md).
+As medições de SQL e os testes de API não substituem a validação visual de
+100 incidentes ativos nem a simulação de falha de rede no navegador.

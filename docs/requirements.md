@@ -94,12 +94,15 @@ Fluxo principal:
 | RF-07 | Criar incidente manualmente | O motorista registra um incidente para si; o analista pode registrá-lo selecionando o motorista associado. Em ambos os casos, a API valida os campos obrigatórios e, após sucesso, o novo incidente fica visível na fila apropriada. |
 | RF-08 | Alterar status | O analista pode mudar o status de um incidente para um dos status permitidos. A interface mostra a confirmação e reflete o estado retornado pela API. |
 | RF-08A | Reclassificar criticidade | O analista pode alterar a criticidade após a triagem. A alteração usa a versão atual do incidente, fica registrada no histórico e atualiza sua posição na fila. |
-| RF-09 | Tratar atualização concorrente | Toda atualização do atendimento envia a versão lida, inclusive observação, criticidade, atribuição e reabertura. Se houver divergência, a API rejeita sem sobrescrever dados e a interface oferece recarregar. |
+| RF-09 | Tratar atualização concorrente | Toda atualização do atendimento envia a versão lida, inclusive observação, criticidade, atribuição e reabertura. Se houver divergência, a API rejeita sem sobrescrever dados; a interface avisa, atualiza os dados e permite nova tentativa manual preservando o rascunho. |
 | RF-10 | Informar carregamento | Durante uma busca ou atualização, a interface mantém feedback visual e evita ações duplicadas incompatíveis. |
 | RF-11 | Informar ausência de dados | Sem incidentes — inicialmente ou após filtros — a interface explica o estado e permite limpar filtros quando aplicável. |
 | RF-12 | Tratar falha de rede/API | Se uma operação falhar, a interface exibe mensagem clara, preserva os dados já carregados quando possível e permite nova tentativa. |
 | RF-13 | Buscar e ordenar | Ambos os perfis podem buscar por título, código, motorista, placa e localização, filtrar por status e inverter a ordem temporal sem remover a precedência da criticidade. |
 | RF-14 | Consultar além de 100 incidentes | A listagem é paginada, inicialmente com até 100 registros, e permite carregar as páginas seguintes sem limitar o total do sistema. |
+| RF-15 | Administrar contas operacionais | Somente ADMIN lista, busca, cadastra, desativa e reativa motoristas e analistas; não há cadastro público ou criação de ADMIN pela interface. |
+| RF-16 | Filtrar contas por situação | A administração inicia com contas ativas; permite Desativadas e Todas, combinadas com busca e paginação. |
+| RF-17 | Bloquear contas desativadas | Login e operações autenticadas de contas inativas são rejeitados; incidentes e histórico permanecem preservados. Analistas com atendimento ativo precisam transferi-lo antes da desativação. |
 
 ## 5. Regras de negócio
 
@@ -178,6 +181,19 @@ responde `409 Conflict` caso exista divergência. Nenhuma atualização deve ser
 - Aplicação acessível online por link público.
 - Links enviados exclusivamente pela plataforma de recrutamento até o prazo do
   e-mail de confirmação.
+- A plataforma recebe um link para uma pasta pública reunindo os links do
+  repositório, vídeo e aplicação, todos acessíveis sem solicitar permissão.
+
+### Pendências de entrega
+
+- A aplicação e o repositório já estão públicos; acesso e contas de demonstração
+  estão no README principal. Vídeo e pasta final de links ainda precisam ser preparados.
+- A demonstração foi populada com 50 incidentes; falta preparar e avaliar o
+  cenário visual com 100 incidentes ativos. O seed local permite gerar 120.
+- O enunciado menciona CRUD, mas a implementação atual não exclui incidentes.
+  A decisão de escopo precisa ser resolvida ou explicitamente justificada na entrega.
+- Validar os fluxos no navegador em celular/desktop e sob lentidão/perda de rede.
+  Testes de API e medições SQL não comprovam essas experiências de interface.
 
 ## 8. Decisões consolidadas e estado atual
 
@@ -196,8 +212,12 @@ responde `409 Conflict` caso exista divergência. Nenhuma atualização deve ser
 - UUID identifica o recurso; código público `INC-...` identifica o chamado visualmente.
 - Contratos e validações estão em `api-contract.md`. Backend e frontend já usam
   a API para autenticação, paginação, estados de rede, registro e atendimento.
-- A migration precisa contemplar o código público e o evento de criação no
-  histórico, preservando a autoria sem campo extra no incidente.
+- Código público e evento de criação com autoria foram implementados na migration
+  `002`, sem campo adicional no incidente.
+- Gestão de usuários em `/usuarios`, exclusiva de ADMIN; esse cargo também possui
+  as permissões de analista no atendimento. Contas inativas ficam fora das seleções.
+- Migrations `001` a `004` aplicadas no Docker e no Neon de produção. A `004`
+  adiciona nove índices e `pg_trgm`; consultas e medições estão em `performance.md`.
 
 ## 9. Evolução futura opcional — abertura por WhatsApp
 
