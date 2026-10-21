@@ -26,10 +26,10 @@ def find_by_id(connection: Connection, user_id: UUID, *, lock: bool = False) -> 
     ).fetchone())
 
 
-def list_by_role(connection: Connection, role: UserRole) -> list[dict]:
+def list_by_role(connection: Connection, role: UserRole, *, include_admin: bool = False) -> list[dict]:
     return connection.execute(
-        "SELECT id, name FROM users WHERE role = %s AND is_active ORDER BY name, id",
-        (role.value,),
+        "SELECT id, name FROM users WHERE (role = %s OR (%s AND role = 'ADMIN')) AND is_active ORDER BY name, id",
+        (role.value, include_admin),
     ).fetchall()
 
 
@@ -45,15 +45,16 @@ def create_user(
     return User(**{**row, "role": UserRole(row["role"])})
 
 
-def list_managed_users(connection: Connection, search: str, page: int, page_size: int) -> tuple[list[dict], int]:
+def list_managed_users(connection: Connection, search: str, page: int, page_size: int, status: str = "ACTIVE") -> tuple[list[dict], int]:
     escaped = search.strip().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
     pattern = f"%{escaped}%"
-    condition = "WHERE name ILIKE %s OR email ILIKE %s"
-    total = connection.execute(f"SELECT count(*) AS total FROM users {condition}", (pattern, pattern)).fetchone()["total"]
+    condition = "WHERE (name ILIKE %s OR email ILIKE %s) AND (%s = 'ALL' OR is_active = %s)"
+    params = (pattern, pattern, status, status == "ACTIVE")
+    total = connection.execute(f"SELECT count(*) AS total FROM users {condition}", params).fetchone()["total"]
     rows = connection.execute(
         f'''SELECT id, name, email, role, is_active AS "isActive"
             FROM users {condition} ORDER BY name, id LIMIT %s OFFSET %s''',
-        (pattern, pattern, page_size, (page - 1) * page_size),
+        (*params, page_size, (page - 1) * page_size),
     ).fetchall()
     return rows, total
 

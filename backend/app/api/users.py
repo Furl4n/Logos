@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
@@ -17,8 +17,9 @@ Admin = Annotated[User, Depends(require_admin)]
 def managed_users(
     user: Admin, connection: Database, search: str = Query(default="", max_length=255),
     page: int = Query(default=1, ge=1), pageSize: int = Query(default=20, ge=1, le=100),
+    status: Literal["ACTIVE", "INACTIVE", "ALL"] = "ACTIVE",
 ) -> UserPage:
-    return list_users(connection, search, page, pageSize)
+    return list_users(connection, search, page, pageSize, status)
 
 
 @router.post("", response_model=ManagedUser, status_code=201)

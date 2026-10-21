@@ -3,7 +3,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Query, Response
 
-from app.core.dependencies import OperationalUser as CurrentUser, Database
+from app.core.dependencies import CurrentUser, Database
 from app.schemas.incidents import (
     AssignIncidentRequest, CreateIncidentRequest, IncidentDetail, IncidentFilters,
     IncidentPage, ReopenIncidentRequest, UpdateIncidentRequest,

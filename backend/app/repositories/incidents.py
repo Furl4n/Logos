@@ -48,7 +48,7 @@ def find_incident(connection: Connection, incident_id: UUID, user: User) -> dict
         JOIN users d ON d.id = i.driver_id
         LEFT JOIN users a ON a.id = i.analyst_id
         WHERE i.id = %s AND (%s OR i.driver_id = %s)""",
-        (incident_id, user.role == UserRole.ANALYST, user.id),
+        (incident_id, user.can_attend, user.id),
     ).fetchone()
 
 

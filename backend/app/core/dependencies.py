@@ -35,8 +35,8 @@ CurrentUser = Annotated[User, Depends(get_current_user)]
 
 
 def require_analyst(user: CurrentUser) -> User:
-    if user.role != UserRole.ANALYST:
-        raise APIError(403, "FORBIDDEN", "Acesso exclusivo para analistas.")
+    if not user.can_attend:
+        raise APIError(403, "FORBIDDEN", "Acesso exclusivo para analistas e administradores.")
     return user
 
 
@@ -44,12 +44,3 @@ def require_admin(user: CurrentUser) -> User:
     if user.role != UserRole.ADMIN:
         raise APIError(403, "FORBIDDEN", "Acesso exclusivo para administradores.")
     return user
-
-
-def require_operator(user: CurrentUser) -> User:
-    if user.role not in {UserRole.DRIVER, UserRole.ANALYST}:
-        raise APIError(403, "FORBIDDEN", "Acesso exclusivo para motoristas e analistas.")
-    return user
-
-
-OperationalUser = Annotated[User, Depends(require_operator)]

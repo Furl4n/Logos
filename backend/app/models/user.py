@@ -17,3 +17,7 @@ class User:
     role: UserRole
     password_hash: str = field(repr=False)
     is_active: bool = True
+
+    @property
+    def can_attend(self) -> bool:
+        return self.role in {UserRole.ANALYST, UserRole.ADMIN}

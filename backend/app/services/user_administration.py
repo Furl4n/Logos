@@ -10,8 +10,8 @@ from app.repositories.users import create_user, find_by_id, has_active_assignmen
 from app.schemas.users import CreateUserRequest, ManagedUser, UserPage
 
 
-def list_users(connection: Connection, search: str, page: int, page_size: int) -> UserPage:
-    rows, total = list_managed_users(connection, search, page, page_size)
+def list_users(connection: Connection, search: str, page: int, page_size: int, status: str = "ACTIVE") -> UserPage:
+    rows, total = list_managed_users(connection, search, page, page_size, status)
     return UserPage(items=[ManagedUser(**row) for row in rows], total=total, page=page, pageSize=page_size)
 
 

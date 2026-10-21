@@ -50,13 +50,11 @@ na lista permitida, mesmo quando frontend e API compartilham o domínio.
 O repositório está vinculado ao Neon por `.neon` (ignorado pelo Git).
 Com a CLI autenticada, execute `neon deploy` na raiz para aplicar `neon.ts`
 e gerar `.env.local` com `DATABASE_URL` e `DATABASE_URL_UNPOOLED`.
-O backend lê primeiro `backend/.env` e depois a `.env.local` da raiz;
-variáveis do processo têm precedência sobre ambos. Enquanto esse arquivo
-estiver presente, os comandos locais usam o banco Neon vinculado, inclusive
-se `backend/.env` ainda apontar para o Docker. Para voltar ao banco local,
-mova `.env.local` para fora do repositório ou forneça `DATABASE_URL`
-explicitamente no processo. Confira também `DATABASE_URL_UNPOOLED` antes
-de executar migrations: elas usam essa conexão direta quando disponível.
+O backend lê somente `backend/.env`, configurado localmente para o Docker.
+A `.env.local` da raiz guarda as conexões Neon e não é carregada automaticamente
+pelo backend. Para acessar o Neon, forneça suas variáveis explicitamente no
+processo; elas têm precedência sobre `backend/.env`. Para migrations remotas,
+forneça também `DATABASE_URL_UNPOOLED`, usada como conexão direta quando disponível.
 
 Mantenha as credenciais no arquivo ignorado e cadastre `DATABASE_URL`
 separadamente na Vercel; `neon deploy` não configura as variáveis da Vercel.

@@ -96,11 +96,48 @@ class UserAdministrationTests(IncidentTestCase):
         assigned = self.client.patch(f"/api/v1/incidents/{self.high_recent['id']}/assignee", headers={"Authorization": f"Bearer {create_access_token(other.id)}"}, json={"analystId": str(other.id), "version": 1})
         self.assertEqual(assigned.status_code, 401)
 
-    def test_admin_cannot_operate_incidents_or_disable_admins(self):
-        self.assertEqual(self.client.get('/api/v1/incidents', headers=self.admin_headers).status_code, 403)
-        self.assertEqual(self.client.get(f"/api/v1/incidents/{self.high_recent['id']}", headers=self.admin_headers).status_code, 403)
-        self.assertEqual(self.client.get('/api/v1/users/analysts', headers=self.admin_headers).status_code, 403)
+    def test_admin_has_analyst_access_but_cannot_disable_admins(self):
+        self.assertEqual(self.client.get('/api/v1/incidents', headers=self.admin_headers).status_code, 200)
+        self.assertEqual(self.client.get(f"/api/v1/incidents/{self.high_recent['id']}", headers=self.admin_headers).status_code, 200)
+        options = self.client.get('/api/v1/users/analysts', headers=self.admin_headers)
+        self.assertEqual(options.status_code, 200)
+        self.assertIn(str(self.admin.id), [user['id'] for user in options.json()])
         self.assertEqual(self.status(self.admin, False).status_code, 403)
+
+    def test_admin_can_claim_close_and_reopen_as_owner(self):
+        path = f"/api/v1/incidents/{self.high_recent['id']}"
+        result = self.client.patch(path + '/assignee', headers=self.admin_headers,
+                                   json={"analystId": str(self.admin.id), "version": 1})
+        self.assertEqual(result.status_code, 200, result.text)
+        self.assertEqual(result.json()['assignee']['id'], str(self.admin.id))
+        closed = self.client.patch(path, headers=self.admin_headers, json={
+            "version": 2, "status": "CLOSED", "severity": "MEDIUM", "observation": "Atendimento concluído.",
+        })
+        self.assertEqual(closed.status_code, 200, closed.text)
+        reopened = self.client.post(path + '/reopen', headers=self.admin_headers,
+                                    json={"version": 3, "reason": "Problema voltou."})
+        self.assertEqual(reopened.status_code, 200, reopened.text)
+        self.assertEqual(reopened.json()['status'], 'OPEN')
+
+    def test_admin_can_receive_transfer_but_not_edit_another_owner(self):
+        path = f"/api/v1/incidents/{self.high_old['id']}"
+        rejected = self.client.patch(path, headers=self.admin_headers, json={
+            "version": 1, "status": "CLOSED", "severity": "HIGH", "observation": "Teste",
+        })
+        self.assertEqual(rejected.status_code, 403)
+        transferred = self.client.patch(path + '/assignee', headers=self.headers,
+                                        json={"version": 1, "analystId": str(self.admin.id)})
+        self.assertEqual(transferred.status_code, 200, transferred.text)
+        self.assertEqual(transferred.json()['assignee']['id'], str(self.admin.id))
+
+    def test_admin_can_register_for_driver(self):
+        response = self.client.post('/api/v1/incidents', headers=self.admin_headers, json={
+            "title": "Registro administrativo", "description": "Registro em nome do motorista",
+            "category": "MECHANICAL_ISSUE", "severity": "LOW", "truckPlate": "TST0001",
+            "location": "Pátio", "occurredAt": "2026-01-01T10:00:00Z", "driverId": str(self.driver.id),
+        })
+        self.assertEqual(response.status_code, 201, response.text)
+        self.assertEqual(response.json()['history'][0]['author']['id'], str(self.admin.id))
 
     def test_inactive_analyst_cannot_receive_transfer(self):
         other = self.new_user(UserRole.ANALYST)
@@ -121,3 +158,18 @@ class UserAdministrationTests(IncidentTestCase):
     def test_status_validation_and_missing_user(self):
         self.assertEqual(self.client.patch(f'/api/v1/users/{uuid4()}/status', headers=self.admin_headers, json={"isActive": False}).status_code, 404)
         self.assertEqual(self.client.patch(f'/api/v1/users/{self.driver.id}/status', headers=self.admin_headers, json={"isActive": "false"}).status_code, 422)
+
+    def test_account_status_filter_defaults_to_active_and_combines_with_search(self):
+        self.assertEqual(self.status(self.other_driver, False).status_code, 200)
+        for status, expected in [(None, 3), ('ACTIVE', 3), ('INACTIVE', 1), ('ALL', 4)]:
+            params = {"search": self.marker, "pageSize": 1}
+            if status:
+                params['status'] = status
+            result = self.client.get('/api/v1/users', headers=self.admin_headers, params=params)
+            self.assertEqual(result.status_code, 200, result.text)
+            self.assertEqual(result.json()['total'], expected)
+            self.assertEqual(len(result.json()['items']), 1)
+            if status != 'ALL':
+                self.assertEqual(result.json()['items'][0]['isActive'], status != 'INACTIVE')
+        invalid = self.client.get('/api/v1/users', headers=self.admin_headers, params={"status": "INVALID"})
+        self.assertEqual(invalid.status_code, 422)

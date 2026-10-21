@@ -53,9 +53,10 @@ analista.
 
 ### Permissões por perfil
 
-**Administrador:** acessa exclusivamente `/usuarios`, lista e busca contas,
+**Administrador:** possui acesso exclusivo à gestão em `/usuarios`, lista e busca contas,
 cria motoristas e analistas, desativa ou reativa contas operacionais.
-Não consulta ou atende incidentes. Contas administrativas são criadas pelo terminal.
+Também possui todas as permissões de analista, inclusive atendimento e quadro;
+só altera atendimentos ativos dos quais é responsável. Contas administrativas são criadas pelo terminal.
 Contas inativas não acessam a API, mesmo com sessão anterior; seus dados são
 preservados. Analistas precisam transferir atendimentos ativos antes da desativação.
 
@@ -180,7 +181,7 @@ responde `409 Conflict` caso exista divergência. Nenhuma atualização deve ser
 
 ## 8. Decisões consolidadas e estado atual
 
-- Página complementar `/quadro`, exclusiva de analistas, para visualizar incidentes
+- Página complementar `/quadro`, para analistas e administradores, para visualizar incidentes
   ativos por atribuição: Sem responsável, Meus atendimentos e Com outros analistas.
   Cada coluna tem contagem, carregamento ao rolar e prioridade por criticidade; os cards abrem
   os detalhes existentes, sem interação de arrastar.
